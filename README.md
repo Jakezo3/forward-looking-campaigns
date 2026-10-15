@@ -16,6 +16,7 @@ estimated launch month or quarter (this also sets the year tab), language versio
 - **Year tabs** (2026, 2027, plus any other year a campaign uses). Everything on the page follows the selected tab.
 - **Toggles** for every LoB, segment, motion, New/Refresh, type and status, plus search and a launch window (this month, this quarter, next quarter, past target).
 - **Summary tiles**: upcoming (campaigns vs. campaigns in a box), net new, refreshed, live, past target, next launch.
+- **Exec summary** view that recreates the exec deck's summary slide (launched / net new / refreshed, then upcoming) from the live data.
 - **Launch timeline** by quarter and **by-LoB** chart, both split by status.
 - **Campaign table**: sortable, groupable by LoB, status or quarter, with one-click *Mark live* and *Delete* (with Undo).
 

@@ -302,6 +302,28 @@
   .field.invalid .err { display: block; }
   .field.invalid input, .field.invalid select { border-color: var(--st-risk); }
 
+  /* View switch */
+  .view-switch { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+  .view-switch button {
+    height: 30px; padding: 0 12px; border: 0; border-radius: 7px; background: none;
+    font-weight: 500; color: var(--text-2); cursor: pointer; white-space: nowrap;
+  }
+  .view-switch button[aria-pressed="true"] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
+
+  /* Exec summary (mirrors slide 1 of the exec deck) */
+  .exec { padding: 28px clamp(18px, 4vw, 44px) 24px; }
+  .exec-title { font-size: clamp(20px, 2.6vw, 28px); font-weight: 500; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; text-wrap: balance; }
+  .exec-title b { color: var(--accent); font-weight: 700; padding-right: 14px; border-right: 2px solid var(--accent); }
+  .exec-block { margin-top: 30px; }
+  .exec-period { color: var(--accent); font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .exec-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding-top: 14px; text-align: center; }
+  @media (max-width: 560px) { .exec-row { grid-template-columns: 1fr; } }
+  .exec-stat .n { font-size: clamp(44px, 6vw, 64px); line-height: 1.1; color: var(--accent); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .exec-stat .l { font-size: 17px; margin-top: 4px; }
+  .exec-stat .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .exec-foot { margin-top: 32px; font-size: 12px; font-style: italic; color: var(--muted); }
+  .exec-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
+
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .year-tab {
@@ -341,6 +363,10 @@
       <p class="sub">Upcoming and live campaigns by LoB, segment and motion.</p>
     </div>
     <div class="actions">
+      <div class="view-switch" role="group" aria-label="View">
+        <button type="button" data-view="dash" aria-pressed="true">Dashboard</button>
+        <button type="button" data-view="exec" aria-pressed="false">Exec summary</button>
+      </div>
       <div class="menu" id="dataMenu">
         <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -363,6 +389,30 @@
 
   <nav class="year-tabs" id="yearTabs" role="tablist" aria-label="Fiscal year"></nav>
 
+  <!-- Exec summary -->
+  <section class="card exec" id="execView" hidden aria-label="Executive summary">
+    <h2 class="exec-title"><b id="exFy">FY 2026</b><span>Campaign Timeline &amp; Alignment to IDPs</span></h2>
+    <div class="exec-block">
+      <div class="exec-period" id="exPeriod1"></div>
+      <div class="exec-row">
+        <div class="exec-stat"><div class="n" id="exLaunched">0</div><div class="l">Campaigns Launched</div><div class="s" id="exLaunchedSub"></div></div>
+        <div class="exec-stat"><div class="n" id="exLaunchedNew">0</div><div class="l">Net New Campaigns</div></div>
+        <div class="exec-stat"><div class="n" id="exLaunchedRef">0</div><div class="l">Refreshed Campaigns</div></div>
+      </div>
+    </div>
+    <div class="exec-block">
+      <div class="exec-period" id="exPeriod2"></div>
+      <div class="exec-row">
+        <div class="exec-stat"><div class="n" id="exUpcoming">0</div><div class="l">Upcoming Campaigns</div></div>
+        <div class="exec-stat"><div class="n" id="exUpNew">0</div><div class="l">Net New Campaigns</div></div>
+        <div class="exec-stat"><div class="n" id="exUpRef">0</div><div class="l">Refreshed Campaigns</div></div>
+      </div>
+    </div>
+    <p class="exec-foot" id="exFoot"></p>
+    <p class="exec-note">Counts update automatically from the campaigns on the dashboard. They include every LoB and ignore the dashboard toggles.</p>
+  </section>
+
+  <div id="dashView">
   <!-- KPIs -->
   <section class="kpis" aria-label="Summary">
     <div class="card kpi hero">
@@ -451,6 +501,8 @@
     </div>
     <div id="listBody"></div>
   </section>
+
+  </div>
 
   <footer class="note" id="storageNote"></footer>
 </div>
@@ -1255,6 +1307,36 @@
   }
 
 
+  // ---------- Exec summary ----------
+  function renderExec() {
+    const y = prefs.year, all = inYear();
+    const live = all.filter(c => c.status === 'Live'), up = all.filter(c => c.status !== 'Live');
+    const n = (list, nr) => list.filter(c => c.newRefresh === nr).length;
+    $('#exFy').textContent = 'FY ' + y;
+    const lastM = Math.max(-1, ...live.map(c => { const L = parseLaunch(c.launch); return L ? (L.kind === 'month' ? L.m : L.q * 3 - 1) : -1; }));
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    $('#exPeriod1').textContent = lastM >= 0 ? `January → ${months[lastM]} ${y}` : `January → ${y} (no launches yet)`;
+    $('#exLaunched').textContent = live.length;
+    const liveBox = live.filter(isEiab).length;
+    $('#exLaunchedSub').textContent = liveBox ? `${live.length - liveBox} campaigns, ${liveBox} in a box` : '';
+    $('#exLaunchedNew').textContent = n(live, 'New');
+    $('#exLaunchedRef').textContent = n(live, 'Refresh');
+    const halves = new Set(up.map(c => { const L = parseLaunch(c.launch); return L ? (L.q <= 2 ? 'H1' : 'H2') : 'H?'; }));
+    $('#exPeriod2').textContent = halves.size === 1 && !halves.has('H?') ? `FY ${y} ${[...halves][0]}` : `FY ${y} still to come`;
+    const upBox = up.filter(isEiab).length;
+    $('#exUpcoming').textContent = up.length + (upBox ? '*' : '');
+    $('#exUpNew').textContent = n(up, 'New');
+    $('#exUpRef').textContent = n(up, 'Refresh');
+    $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
+  }
+  function applyView() {
+    const exec = prefs.view === 'exec';
+    $('#execView').hidden = !exec;
+    $('#dashView').hidden = exec;
+    document.querySelectorAll('.view-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view)));
+  }
+  document.querySelectorAll('.view-switch button').forEach(b => b.addEventListener('click', () => { prefs.view = b.dataset.view; savePrefs(); applyView(); }));
+
   // ---------- Render ----------
   function render() {
     const list = filtered();
@@ -1265,6 +1347,7 @@
     renderTimeline(list);
     renderByLob(list);
     renderList(list);
+    renderExec();
   }
 
   // ---------- Boot ----------
@@ -1273,6 +1356,9 @@
     if (hashYear) prefs.year = +hashYear[1];
     if (!Number.isInteger(prefs.year)) prefs.year = BASE_YEARS.includes(new Date().getFullYear()) ? new Date().getFullYear() : BASE_YEARS[0];
     $('#groupSel').value = prefs.group;
+    if (location.hash === '#exec') prefs.view = 'exec';
+    if (prefs.view !== 'exec') prefs.view = 'dash';
+    applyView();
     applyCollapsed();
     renderLegend();
     document.querySelectorAll('.dl-only').forEach(b => b.hidden = true);
