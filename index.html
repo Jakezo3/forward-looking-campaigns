@@ -324,6 +324,40 @@
   .exec-foot { margin-top: 32px; font-size: 12px; font-style: italic; color: var(--muted); }
   .exec-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
 
+  /* Launch calendar */
+  .cal { padding: 20px clamp(16px, 3vw, 28px) 24px; }
+  .cal-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .cal-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; }
+  .cal-head p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+  .cal-tools { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+  .cal-q { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 14px 0; border-top: 1px solid var(--border); }
+  .cal-qlabel { font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600; color: var(--muted); padding-top: 4px; }
+  .cal-qlabel.now { color: var(--accent); }
+  .cal-months { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  @media (max-width: 760px) { .cal-months { grid-template-columns: 1fr; } .cal-q { grid-template-columns: 1fr; } }
+  .cal-month { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 96px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .cal-month.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .cal-month.past { opacity: .92; }
+  .cal-mhead { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 13px; }
+  .cal-mhead .c { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .cal-month.now .cal-mhead > span:first-child { color: var(--accent); }
+  .cal-empty { font-size: 12px; color: var(--muted); }
+  .cal-qband { grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .cal-qband .cal-mhead { color: var(--text-2); }
+  .cal-qband .chips-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+  .cal-chip {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--st-planning);
+    border-radius: 6px; padding: 5px 8px; font-size: 12.5px; line-height: 1.3; min-width: 0;
+  }
+  .cal-chip:hover { border-color: var(--muted); }
+  .cal-chip b { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cal-chip small { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-chip.s-live { border-left-color: var(--st-live); }
+  .cal-chip.s-progress { border-left-color: var(--st-progress); }
+  .cal-chip .ok { color: var(--st-live); font-weight: 700; }
+  .cal-chip .risk { font-size: 11px; }
+
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .year-tab {
@@ -363,8 +397,9 @@
       <p class="sub">Upcoming and live campaigns by LoB, segment and motion.</p>
     </div>
     <div class="actions">
-      <div class="view-switch" role="group" aria-label="View">
+      <div class="view-switch" id="viewSwitch" role="group" aria-label="View">
         <button type="button" data-view="exec" aria-pressed="true">Exec summary</button>
+        <button type="button" data-view="cal" aria-pressed="false">Calendar</button>
         <button type="button" data-view="dash" aria-pressed="false">Dashboard</button>
       </div>
       <div class="menu" id="dataMenu">
@@ -410,6 +445,25 @@
     </div>
     <p class="exec-foot" id="exFoot"></p>
     <p class="exec-note">Counts update automatically from the campaigns on the dashboard. They include every LoB and ignore the dashboard toggles.</p>
+  </section>
+
+  <!-- Launch calendar -->
+  <section class="card cal" id="calView" hidden aria-label="Launch calendar">
+    <div class="cal-head">
+      <div>
+        <h2 id="calTitle">Launch calendar</h2>
+        <p id="calSub"></p>
+      </div>
+      <div class="cal-tools">
+        <div class="view-switch" id="calFilter" role="group" aria-label="Show">
+          <button type="button" data-f="all" aria-pressed="true">All</button>
+          <button type="button" data-f="live" aria-pressed="false">Launched</button>
+          <button type="button" data-f="todo" aria-pressed="false">To come</button>
+        </div>
+        <div class="legend" id="calLegend"></div>
+      </div>
+    </div>
+    <div id="calGrid"></div>
   </section>
 
   <div id="dashView" hidden>
@@ -1329,13 +1383,58 @@
     $('#exUpRef').textContent = n(up, 'Refresh');
     $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
   }
-  function applyView() {
-    const exec = prefs.view2 === 'exec';
-    $('#execView').hidden = !exec;
-    $('#dashView').hidden = exec;
-    document.querySelectorAll('.view-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view2)));
+  // ---------- Launch calendar ----------
+  function calChip(c) {
+    const st = c.status === 'Live' ? 's-live' : c.status === 'In Progress' ? 's-progress' : '';
+    return el('button', { type: 'button', class: 'cal-chip ' + st, title: `${c.name} · ${c.lob} · ${c.status}`, onclick: () => openForm(c) },
+      el('b', {}, c.name),
+      el('small', {},
+        c.status === 'Live' ? el('span', { class: 'ok', 'aria-hidden': 'true' }, '✓') : null,
+        `${c.status === 'Live' ? 'Launched' : c.status} · ${c.lob}${isEiab(c) ? ' · in a Box' : ''}`,
+        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null));
   }
-  document.querySelectorAll('.view-switch button').forEach(b => b.addEventListener('click', () => { prefs.view2 = b.dataset.view; savePrefs(); applyView(); }));
+  function renderCalendar() {
+    const y = prefs.year, f = prefs.calFilter || 'all', t = today();
+    const all = inYear();
+    const items = all.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live'));
+    const nLive = all.filter(c => c.status === 'Live').length;
+    $('#calTitle').textContent = `${y} launch calendar`;
+    $('#calSub').textContent = all.length ? `${nLive} launched · ${all.length - nLive} to come` : `No ${y} campaigns yet`;
+    document.querySelectorAll('#calFilter button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+    $('#calLegend').replaceChildren(...STATUSES.map(s => el('span', {}, el('i', { style: `background:${s.color}` }), s.id === 'Live' ? 'Launched' : s.id)));
+    const byKey = {};
+    for (const c of items) { const L = parseLaunch(c.launch); if (!L) continue; const k = L.kind === 'month' ? 'm' + L.m : 'q' + L.q; (byKey[k] ||= []).push(c); }
+    const sortC = list => list.slice().sort((a, b) => STATUSES.findIndex(s => s.id === b.status) - STATUSES.findIndex(s => s.id === a.status) || a.name.localeCompare(b.name));
+    const curQ = t.getFullYear() === y ? Math.floor(t.getMonth() / 3) + 1 : 0;
+    const grid = [1, 2, 3, 4].map(q => {
+      const months = [0, 1, 2].map(i => {
+        const m = (q - 1) * 3 + i, list = sortC(byKey['m' + m] || []);
+        const now = t.getFullYear() === y && t.getMonth() === m;
+        const past = y < t.getFullYear() || (y === t.getFullYear() && m < t.getMonth());
+        return el('div', { class: 'cal-month' + (now ? ' now' : '') + (past ? ' past' : '') },
+          el('div', { class: 'cal-mhead' }, el('span', {}, MONTHS[m] + (now ? ' · this month' : '')), list.length ? el('span', { class: 'c' }, list.length) : null),
+          list.length ? list.map(calChip) : el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing planned' : 'Nothing scheduled'));
+      });
+      const qList = sortC(byKey['q' + q] || []);
+      const band = qList.length ? el('div', { class: 'cal-qband' },
+        el('div', { class: 'cal-mhead' }, el('span', {}, `Q${q} · month not set yet`), el('span', { class: 'c' }, qList.length)),
+        el('div', { class: 'chips-wrap' }, qList.map(calChip))) : null;
+      return el('div', { class: 'cal-q' },
+        el('div', { class: 'cal-qlabel' + (q === curQ ? ' now' : '') }, `Q${q}`),
+        el('div', { class: 'cal-months' }, months, band));
+    });
+    $('#calGrid').replaceChildren(...grid);
+  }
+  document.querySelectorAll('#calFilter button').forEach(b => b.addEventListener('click', () => { prefs.calFilter = b.dataset.f; savePrefs(); renderCalendar(); }));
+
+  function applyView() {
+    const v = prefs.view2;
+    $('#execView').hidden = v !== 'exec';
+    $('#calView').hidden = v !== 'cal';
+    $('#dashView').hidden = v !== 'dash';
+    document.querySelectorAll('#viewSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+  }
+  document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { prefs.view2 = b.dataset.view; savePrefs(); applyView(); }));
 
   // ---------- Render ----------
   function render() {
@@ -1348,6 +1447,7 @@
     renderByLob(list);
     renderList(list);
     renderExec();
+    renderCalendar();
   }
 
   // ---------- Boot ----------
@@ -1356,9 +1456,10 @@
     if (hashYear) prefs.year = +hashYear[1];
     if (!Number.isInteger(prefs.year)) prefs.year = BASE_YEARS.includes(new Date().getFullYear()) ? new Date().getFullYear() : BASE_YEARS[0];
     $('#groupSel').value = prefs.group;
-    // Exec summary is the landing view; #dashboard links straight to the dashboard.
+    // Exec summary is the landing view; #calendar / #dashboard link straight to the others.
     if (location.hash === '#dashboard') prefs.view2 = 'dash';
-    if (prefs.view2 !== 'dash') prefs.view2 = 'exec';
+    if (location.hash === '#calendar') prefs.view2 = 'cal';
+    if (!['dash', 'cal'].includes(prefs.view2)) prefs.view2 = 'exec';
     applyView();
     applyCollapsed();
     renderLegend();
