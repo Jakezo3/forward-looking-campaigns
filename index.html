@@ -325,33 +325,32 @@
   .exec-foot { margin-top: 32px; font-size: 12px; font-style: italic; color: var(--muted); }
   .exec-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
 
-  /* Launch calendar: LoB picker, then Q1–Q4 side by side */
+  /* Launch calendar: one continuous row of quarters across years */
   .cal { padding: 20px clamp(16px, 3vw, 28px) 24px; }
-  .cal-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .cal-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .cal-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; text-wrap: balance; }
   .cal-head p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
   .cal-tools { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
-  .lob-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-  .lob-card {
-    text-align: left; cursor: pointer; padding: 14px 16px; border-radius: 10px;
-    background: var(--surface-2); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;
+  .lob-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .lob-btn {
+    height: 32px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); font-size: 13px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 6px;
   }
-  .lob-card:hover { border-color: var(--accent); }
-  .lob-card b { font-size: 15px; font-weight: 600; }
-  .lob-card small { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
-  .lob-card.all { background: var(--accent-soft); border-color: var(--accent); }
-  .lob-card.zero { opacity: .6; }
-  .cal-scroll { overflow-x: auto; padding-bottom: 4px; }
-  .cal-quarters { display: grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap: 12px; }
+  .lob-btn:hover { border-color: var(--muted); color: var(--text); }
+  .lob-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .lob-btn .n { font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
+  .cal-scroll { overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
+  .cal-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 10px; min-width: 100%; }
   .cal-qcol { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .cal-qcol.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .cal-qhead { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .cal-qhead b { font-family: 'Fraunces', Georgia, serif; font-size: 20px; }
+  .cal-qcol.newyear { margin-left: 10px; position: relative; }
+  .cal-qcol.newyear::before { content: ""; position: absolute; left: -16px; top: 6px; bottom: 6px; border-left: 2px dashed var(--border); }
+  .cal-qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .cal-qhead b { font-family: 'Fraunces', Georgia, serif; font-size: 20px; white-space: nowrap; }
   .cal-qcol.now .cal-qhead b { color: var(--accent); }
-  .cal-qhead span { font-size: 12px; color: var(--muted); }
-  .cal-qhead .c { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .cal-mlabel { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
-  .cal-mlabel.now { color: var(--accent); }
+  .cal-qhead span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .cal-qhead .nowtag { color: var(--accent); font-weight: 600; }
   .cal-empty { font-size: 12px; color: var(--muted); padding: 6px 0; }
   .cal-chip {
     display: block; width: 100%; text-align: left; cursor: pointer;
@@ -407,8 +406,8 @@
     <div class="actions">
       <div class="view-switch" id="viewSwitch" role="group" aria-label="View">
         <button type="button" data-view="exec" aria-pressed="true">Exec summary</button>
-        <button type="button" data-view="cal" aria-pressed="false">Calendar</button>
         <button type="button" data-view="dash" aria-pressed="false">Dashboard</button>
+        <button type="button" data-view="cal" aria-pressed="false">Calendar</button>
       </div>
       <div class="menu" id="dataMenu">
         <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
@@ -462,8 +461,7 @@
         <h2 id="calTitle">Launch calendar</h2>
         <p id="calSub"></p>
       </div>
-      <div class="cal-tools" id="calTools">
-        <button type="button" class="btn" id="calChangeLob">Change LoB</button>
+      <div class="cal-tools">
         <div class="view-switch" id="calFilter" role="group" aria-label="Show">
           <button type="button" data-f="all" aria-pressed="true">All</button>
           <button type="button" data-f="live" aria-pressed="false">Launched</button>
@@ -472,7 +470,8 @@
         <div class="legend" id="calLegend"></div>
       </div>
     </div>
-    <div id="calBody"></div>
+    <div class="lob-row" id="calLobs" role="group" aria-label="Line of business"></div>
+    <div class="cal-scroll" id="calScroll"><div class="cal-track" id="calTrack"></div></div>
   </section>
 
   <div id="dashView" hidden>
@@ -1393,77 +1392,74 @@
     $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
   }
   // ---------- Launch calendar ----------
-  // Asks for a LoB first (every page load), then shows Q1–Q4 side by side.
-  let calLob = null; // null = not chosen yet, '*' = all LoBs
+  // One continuous row of quarters across every year; LoB is a one-click choice above it.
   const ALL_LOBS = '*';
+  let calScrolled = false;
   function calChip(c) {
     const st = c.status === 'Live' ? 's-live' : c.status === 'In Progress' ? 's-progress' : '';
-    const L = parseLaunch(c.launch);
+    const lobAll = (prefs.calLob || ALL_LOBS) === ALL_LOBS;
     return el('button', { type: 'button', class: 'cal-chip ' + st, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
       el('b', {}, c.name),
       el('small', {},
         c.status === 'Live' ? el('span', { class: 'ok', 'aria-hidden': 'true' }, '✓') : null,
         el('span', {}, c.status === 'Live' ? 'Launched' : c.status),
-        calLob === ALL_LOBS ? el('span', {}, '· ' + c.lob) : null,
+        lobAll ? el('span', {}, '· ' + c.lob) : null,
         isEiab(c) ? el('span', {}, '· in a Box') : null,
         isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null));
   }
-  function renderLobPicker(all) {
-    const lobs = uniq([...prefs.lobs, ...all.map(c => c.lob)]);
-    const count = lob => { const l = all.filter(c => lob === ALL_LOBS || c.lob === lob); const live = l.filter(c => c.status === 'Live').length; return { n: l.length, live, todo: l.length - live }; };
-    const card = (lob, label, extra) => { const k = count(lob); return el('button', { type: 'button', class: 'lob-card' + (extra || '') + (k.n ? '' : ' zero'), onclick: () => { calLob = lob; renderCalendar(); } },
-      el('b', {}, label), el('small', {}, k.n ? `${k.live} launched · ${k.todo} to come` : 'No campaigns yet')); };
-    lobs.sort((a, b) => count(b).n - count(a).n || a.localeCompare(b));
-    return el('div', { class: 'lob-pick' }, card(ALL_LOBS, 'All LoBs', ' all'), lobs.map(l => card(l, l)));
-  }
   function renderCalendar() {
-    const y = prefs.year, f = prefs.calFilter || 'all', t = today();
-    const all = inYear();
-    if (calLob === null) {
-      $('#calTitle').textContent = `${y} launch calendar`;
-      $('#calSub').textContent = 'Which line of business do you want to see?';
-      $('#calTools').hidden = true;
-      $('#calBody').replaceChildren(renderLobPicker(all));
-      return;
-    }
-    $('#calTools').hidden = false;
-    const scoped = all.filter(c => calLob === ALL_LOBS || c.lob === calLob);
+    const f = prefs.calFilter || 'all', t = today();
+    let lob = prefs.calLob || ALL_LOBS;
+    const dated = campaigns.filter(c => parseLaunch(c.launch));
+    const lobs = uniq(dated.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
+    if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = prefs.calLob = ALL_LOBS;
+    const lobBtn = (v, label, n) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
+      onclick: () => { prefs.calLob = v; savePrefs(); renderCalendar(); } }, label, el('span', { class: 'n' }, n));
+    $('#calLobs').replaceChildren(lobBtn(ALL_LOBS, 'All LoBs', dated.length), ...lobs.map(l => lobBtn(l, l, dated.filter(c => c.lob === l).length)));
+
+    const scoped = dated.filter(c => lob === ALL_LOBS || c.lob === lob);
     const items = scoped.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live'));
     const nLive = scoped.filter(c => c.status === 'Live').length;
-    $('#calTitle').textContent = `${calLob === ALL_LOBS ? 'All LoBs' : calLob} · ${y} by quarter`;
-    $('#calSub').textContent = scoped.length ? `${nLive} launched · ${scoped.length - nLive} to come` : `No ${y} campaigns for this LoB yet`;
+    $('#calTitle').textContent = `${lob === ALL_LOBS ? 'All LoBs' : lob} · launch calendar`;
+    $('#calSub').textContent = scoped.length ? `${nLive} launched · ${scoped.length - nLive} to come` : 'No campaigns for this LoB yet';
     document.querySelectorAll('#calFilter button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
     $('#calLegend').replaceChildren(...STATUSES.map(s => el('span', {}, el('i', { style: `background:${s.color}` }), s.id === 'Live' ? 'Launched' : s.id)));
-    const curQ = t.getFullYear() === y ? Math.floor(t.getMonth() / 3) + 1 : 0;
-    const cols = [1, 2, 3, 4].map(q => {
-      const inQ = items.filter(c => parseLaunch(c.launch)?.q === q);
-      const body = [];
-      // Campaigns with a known month come first, in month order; quarter-only ones go last.
-      for (let i = 0; i < 3; i++) {
-        const m = (q - 1) * 3 + i;
-        const list = inQ.filter(c => { const L = parseLaunch(c.launch); return L.kind === 'month' && L.m === m; }).sort((a, b) => a.name.localeCompare(b.name));
-        if (!list.length) continue;
-        const now = t.getFullYear() === y && t.getMonth() === m;
-        body.push(el('div', { class: 'cal-mlabel' + (now ? ' now' : '') }, MONTHS[m] + (now ? ' · this month' : '')), ...list.map(calChip));
-      }
-      const qOnly = inQ.filter(c => parseLaunch(c.launch).kind === 'quarter').sort((a, b) => a.name.localeCompare(b.name));
-      if (qOnly.length) body.push(el('div', { class: 'cal-mlabel' }, `Q${q} · month not set`), ...qOnly.map(calChip));
-      if (!body.length) body.push(el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : 'Nothing scheduled'));
+
+    // Quarters from the first year with campaigns (or the first tab year) through the last.
+    const years = [...new Set([...BASE_YEARS, ...dated.map(c => parseLaunch(c.launch).y)])].sort((a, b) => a - b);
+    const curY = t.getFullYear(), curQ = Math.floor(t.getMonth() / 3) + 1;
+    const cols = [];
+    let nowCol = null;
+    for (const y of years) for (const q of [1, 2, 3, 4]) {
+      const inQ = items.filter(c => { const L = parseLaunch(c.launch); return L.y === y && L.q === q; });
+      // Earlier is first: known months in order, then campaigns with only a quarter.
+      inQ.sort((a, b) => launchSortKey(a.launch) - launchSortKey(b.launch) || a.name.localeCompare(b.name));
+      const now = y === curY && q === curQ;
       const qm = MONTHS.slice((q - 1) * 3, q * 3);
-      return el('div', { class: 'cal-qcol' + (q === curQ ? ' now' : '') },
-        el('div', { class: 'cal-qhead' }, el('b', {}, `Q${q}`), el('span', {}, `${qm[0]}–${qm[2]}`, inQ.length ? el('span', { class: 'c' }, ` · ${inQ.length}`) : null)),
-        ...body);
-    });
-    $('#calBody').replaceChildren(el('div', { class: 'cal-scroll' }, el('div', { class: 'cal-quarters' }, cols)));
+      const col = el('div', { class: 'cal-qcol' + (now ? ' now' : '') + (q === 1 && y !== years[0] ? ' newyear' : '') },
+        el('div', { class: 'cal-qhead' }, el('b', {}, `Q${q} ${y}`),
+          el('span', {}, now ? el('span', { class: 'nowtag' }, 'Now · ') : null, `${qm[0]}–${qm[2]} · ${inQ.length}`)),
+        inQ.length ? inQ.map(calChip) : el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : 'Nothing scheduled'));
+      if (now) nowCol = col;
+      cols.push(col);
+    }
+    $('#calTrack').replaceChildren(...cols);
+    // On first show, scroll so the current quarter sits near the left.
+    if (!calScrolled && nowCol && !$('#calView').hidden) {
+      calScrolled = true;
+      const sc = $('#calScroll');
+      requestAnimationFrame(() => { sc.style.scrollBehavior = 'auto'; sc.scrollLeft = Math.max(0, nowCol.offsetLeft - sc.offsetLeft - 280); sc.style.scrollBehavior = ''; });
+    }
   }
   document.querySelectorAll('#calFilter button').forEach(b => b.addEventListener('click', () => { prefs.calFilter = b.dataset.f; savePrefs(); renderCalendar(); }));
-  $('#calChangeLob').addEventListener('click', () => { calLob = null; renderCalendar(); });
 
   function applyView() {
     const v = prefs.view2;
     $('#execView').hidden = v !== 'exec';
     $('#calView').hidden = v !== 'cal';
     $('#dashView').hidden = v !== 'dash';
+    $('#yearTabs').hidden = v === 'cal'; // the calendar runs across years
+    if (v === 'cal') { calScrolled = false; renderCalendar(); }
     document.querySelectorAll('#viewSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
   }
   document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { prefs.view2 = b.dataset.view; savePrefs(); applyView(); }));
