@@ -67,6 +67,7 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
   body {
     background: var(--bg);
     color: var(--text);
@@ -324,35 +325,42 @@
   .exec-foot { margin-top: 32px; font-size: 12px; font-style: italic; color: var(--muted); }
   .exec-note { margin-top: 6px; font-size: 12px; color: var(--muted); }
 
-  /* Launch calendar */
+  /* Launch calendar: LoB picker, then Q1–Q4 side by side */
   .cal { padding: 20px clamp(16px, 3vw, 28px) 24px; }
   .cal-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-  .cal-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; }
+  .cal-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; text-wrap: balance; }
   .cal-head p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
   .cal-tools { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
-  .cal-q { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; padding: 14px 0; border-top: 1px solid var(--border); }
-  .cal-qlabel { font-family: 'Fraunces', Georgia, serif; font-size: 20px; font-weight: 600; color: var(--muted); padding-top: 4px; }
-  .cal-qlabel.now { color: var(--accent); }
-  .cal-months { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  @media (max-width: 760px) { .cal-months { grid-template-columns: 1fr; } .cal-q { grid-template-columns: 1fr; } }
-  .cal-month { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 96px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-  .cal-month.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .cal-month.past { opacity: .92; }
-  .cal-mhead { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; font-size: 13px; }
-  .cal-mhead .c { font-size: 11px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .cal-month.now .cal-mhead > span:first-child { color: var(--accent); }
-  .cal-empty { font-size: 12px; color: var(--muted); }
-  .cal-qband { grid-column: 1 / -1; border: 1px dashed var(--border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-  .cal-qband .cal-mhead { color: var(--text-2); }
-  .cal-qband .chips-wrap { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+  .lob-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .lob-card {
+    text-align: left; cursor: pointer; padding: 14px 16px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px;
+  }
+  .lob-card:hover { border-color: var(--accent); }
+  .lob-card b { font-size: 15px; font-weight: 600; }
+  .lob-card small { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .lob-card.all { background: var(--accent-soft); border-color: var(--accent); }
+  .lob-card.zero { opacity: .6; }
+  .cal-scroll { overflow-x: auto; padding-bottom: 4px; }
+  .cal-quarters { display: grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap: 12px; }
+  .cal-qcol { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .cal-qcol.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .cal-qhead { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .cal-qhead b { font-family: 'Fraunces', Georgia, serif; font-size: 20px; }
+  .cal-qcol.now .cal-qhead b { color: var(--accent); }
+  .cal-qhead span { font-size: 12px; color: var(--muted); }
+  .cal-qhead .c { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cal-mlabel { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .cal-mlabel.now { color: var(--accent); }
+  .cal-empty { font-size: 12px; color: var(--muted); padding: 6px 0; }
   .cal-chip {
     display: block; width: 100%; text-align: left; cursor: pointer;
     background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--st-planning);
-    border-radius: 6px; padding: 5px 8px; font-size: 12.5px; line-height: 1.3; min-width: 0;
+    border-radius: 6px; padding: 6px 8px; font-size: 12.5px; line-height: 1.3; min-width: 0;
   }
   .cal-chip:hover { border-color: var(--muted); }
-  .cal-chip b { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .cal-chip small { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-chip b { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .cal-chip small { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; color: var(--muted); font-size: 11px; margin-top: 3px; }
   .cal-chip.s-live { border-left-color: var(--st-live); }
   .cal-chip.s-progress { border-left-color: var(--st-progress); }
   .cal-chip .ok { color: var(--st-live); font-weight: 700; }
@@ -454,7 +462,8 @@
         <h2 id="calTitle">Launch calendar</h2>
         <p id="calSub"></p>
       </div>
-      <div class="cal-tools">
+      <div class="cal-tools" id="calTools">
+        <button type="button" class="btn" id="calChangeLob">Change LoB</button>
         <div class="view-switch" id="calFilter" role="group" aria-label="Show">
           <button type="button" data-f="all" aria-pressed="true">All</button>
           <button type="button" data-f="live" aria-pressed="false">Launched</button>
@@ -463,7 +472,7 @@
         <div class="legend" id="calLegend"></div>
       </div>
     </div>
-    <div id="calGrid"></div>
+    <div id="calBody"></div>
   </section>
 
   <div id="dashView" hidden>
@@ -1384,48 +1393,71 @@
     $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
   }
   // ---------- Launch calendar ----------
+  // Asks for a LoB first (every page load), then shows Q1–Q4 side by side.
+  let calLob = null; // null = not chosen yet, '*' = all LoBs
+  const ALL_LOBS = '*';
   function calChip(c) {
     const st = c.status === 'Live' ? 's-live' : c.status === 'In Progress' ? 's-progress' : '';
-    return el('button', { type: 'button', class: 'cal-chip ' + st, title: `${c.name} · ${c.lob} · ${c.status}`, onclick: () => openForm(c) },
+    const L = parseLaunch(c.launch);
+    return el('button', { type: 'button', class: 'cal-chip ' + st, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
       el('b', {}, c.name),
       el('small', {},
         c.status === 'Live' ? el('span', { class: 'ok', 'aria-hidden': 'true' }, '✓') : null,
-        `${c.status === 'Live' ? 'Launched' : c.status} · ${c.lob}${isEiab(c) ? ' · in a Box' : ''}`,
+        el('span', {}, c.status === 'Live' ? 'Launched' : c.status),
+        calLob === ALL_LOBS ? el('span', {}, '· ' + c.lob) : null,
+        isEiab(c) ? el('span', {}, '· in a Box') : null,
         isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null));
+  }
+  function renderLobPicker(all) {
+    const lobs = uniq([...prefs.lobs, ...all.map(c => c.lob)]);
+    const count = lob => { const l = all.filter(c => lob === ALL_LOBS || c.lob === lob); const live = l.filter(c => c.status === 'Live').length; return { n: l.length, live, todo: l.length - live }; };
+    const card = (lob, label, extra) => { const k = count(lob); return el('button', { type: 'button', class: 'lob-card' + (extra || '') + (k.n ? '' : ' zero'), onclick: () => { calLob = lob; renderCalendar(); } },
+      el('b', {}, label), el('small', {}, k.n ? `${k.live} launched · ${k.todo} to come` : 'No campaigns yet')); };
+    lobs.sort((a, b) => count(b).n - count(a).n || a.localeCompare(b));
+    return el('div', { class: 'lob-pick' }, card(ALL_LOBS, 'All LoBs', ' all'), lobs.map(l => card(l, l)));
   }
   function renderCalendar() {
     const y = prefs.year, f = prefs.calFilter || 'all', t = today();
     const all = inYear();
-    const items = all.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live'));
-    const nLive = all.filter(c => c.status === 'Live').length;
-    $('#calTitle').textContent = `${y} launch calendar`;
-    $('#calSub').textContent = all.length ? `${nLive} launched · ${all.length - nLive} to come` : `No ${y} campaigns yet`;
+    if (calLob === null) {
+      $('#calTitle').textContent = `${y} launch calendar`;
+      $('#calSub').textContent = 'Which line of business do you want to see?';
+      $('#calTools').hidden = true;
+      $('#calBody').replaceChildren(renderLobPicker(all));
+      return;
+    }
+    $('#calTools').hidden = false;
+    const scoped = all.filter(c => calLob === ALL_LOBS || c.lob === calLob);
+    const items = scoped.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live'));
+    const nLive = scoped.filter(c => c.status === 'Live').length;
+    $('#calTitle').textContent = `${calLob === ALL_LOBS ? 'All LoBs' : calLob} · ${y} by quarter`;
+    $('#calSub').textContent = scoped.length ? `${nLive} launched · ${scoped.length - nLive} to come` : `No ${y} campaigns for this LoB yet`;
     document.querySelectorAll('#calFilter button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
     $('#calLegend').replaceChildren(...STATUSES.map(s => el('span', {}, el('i', { style: `background:${s.color}` }), s.id === 'Live' ? 'Launched' : s.id)));
-    const byKey = {};
-    for (const c of items) { const L = parseLaunch(c.launch); if (!L) continue; const k = L.kind === 'month' ? 'm' + L.m : 'q' + L.q; (byKey[k] ||= []).push(c); }
-    const sortC = list => list.slice().sort((a, b) => STATUSES.findIndex(s => s.id === b.status) - STATUSES.findIndex(s => s.id === a.status) || a.name.localeCompare(b.name));
     const curQ = t.getFullYear() === y ? Math.floor(t.getMonth() / 3) + 1 : 0;
-    const grid = [1, 2, 3, 4].map(q => {
-      const months = [0, 1, 2].map(i => {
-        const m = (q - 1) * 3 + i, list = sortC(byKey['m' + m] || []);
+    const cols = [1, 2, 3, 4].map(q => {
+      const inQ = items.filter(c => parseLaunch(c.launch)?.q === q);
+      const body = [];
+      // Campaigns with a known month come first, in month order; quarter-only ones go last.
+      for (let i = 0; i < 3; i++) {
+        const m = (q - 1) * 3 + i;
+        const list = inQ.filter(c => { const L = parseLaunch(c.launch); return L.kind === 'month' && L.m === m; }).sort((a, b) => a.name.localeCompare(b.name));
+        if (!list.length) continue;
         const now = t.getFullYear() === y && t.getMonth() === m;
-        const past = y < t.getFullYear() || (y === t.getFullYear() && m < t.getMonth());
-        return el('div', { class: 'cal-month' + (now ? ' now' : '') + (past ? ' past' : '') },
-          el('div', { class: 'cal-mhead' }, el('span', {}, MONTHS[m] + (now ? ' · this month' : '')), list.length ? el('span', { class: 'c' }, list.length) : null),
-          list.length ? list.map(calChip) : el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing planned' : 'Nothing scheduled'));
-      });
-      const qList = sortC(byKey['q' + q] || []);
-      const band = qList.length ? el('div', { class: 'cal-qband' },
-        el('div', { class: 'cal-mhead' }, el('span', {}, `Q${q} · month not set yet`), el('span', { class: 'c' }, qList.length)),
-        el('div', { class: 'chips-wrap' }, qList.map(calChip))) : null;
-      return el('div', { class: 'cal-q' },
-        el('div', { class: 'cal-qlabel' + (q === curQ ? ' now' : '') }, `Q${q}`),
-        el('div', { class: 'cal-months' }, months, band));
+        body.push(el('div', { class: 'cal-mlabel' + (now ? ' now' : '') }, MONTHS[m] + (now ? ' · this month' : '')), ...list.map(calChip));
+      }
+      const qOnly = inQ.filter(c => parseLaunch(c.launch).kind === 'quarter').sort((a, b) => a.name.localeCompare(b.name));
+      if (qOnly.length) body.push(el('div', { class: 'cal-mlabel' }, `Q${q} · month not set`), ...qOnly.map(calChip));
+      if (!body.length) body.push(el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : 'Nothing scheduled'));
+      const qm = MONTHS.slice((q - 1) * 3, q * 3);
+      return el('div', { class: 'cal-qcol' + (q === curQ ? ' now' : '') },
+        el('div', { class: 'cal-qhead' }, el('b', {}, `Q${q}`), el('span', {}, `${qm[0]}–${qm[2]}`, inQ.length ? el('span', { class: 'c' }, ` · ${inQ.length}`) : null)),
+        ...body);
     });
-    $('#calGrid').replaceChildren(...grid);
+    $('#calBody').replaceChildren(el('div', { class: 'cal-scroll' }, el('div', { class: 'cal-quarters' }, cols)));
   }
   document.querySelectorAll('#calFilter button').forEach(b => b.addEventListener('click', () => { prefs.calFilter = b.dataset.f; savePrefs(); renderCalendar(); }));
+  $('#calChangeLob').addEventListener('click', () => { calLob = null; renderCalendar(); });
 
   function applyView() {
     const v = prefs.view2;
