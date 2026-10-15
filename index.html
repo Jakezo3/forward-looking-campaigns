@@ -364,8 +364,8 @@
     </div>
     <div class="actions">
       <div class="view-switch" role="group" aria-label="View">
-        <button type="button" data-view="dash" aria-pressed="true">Dashboard</button>
-        <button type="button" data-view="exec" aria-pressed="false">Exec summary</button>
+        <button type="button" data-view="exec" aria-pressed="true">Exec summary</button>
+        <button type="button" data-view="dash" aria-pressed="false">Dashboard</button>
       </div>
       <div class="menu" id="dataMenu">
         <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
@@ -390,7 +390,7 @@
   <nav class="year-tabs" id="yearTabs" role="tablist" aria-label="Fiscal year"></nav>
 
   <!-- Exec summary -->
-  <section class="card exec" id="execView" hidden aria-label="Executive summary">
+  <section class="card exec" id="execView" aria-label="Executive summary">
     <h2 class="exec-title"><b id="exFy">FY 2026</b><span>Campaign Timeline &amp; Alignment to IDPs</span></h2>
     <div class="exec-block">
       <div class="exec-period" id="exPeriod1"></div>
@@ -412,7 +412,7 @@
     <p class="exec-note">Counts update automatically from the campaigns on the dashboard. They include every LoB and ignore the dashboard toggles.</p>
   </section>
 
-  <div id="dashView">
+  <div id="dashView" hidden>
   <!-- KPIs -->
   <section class="kpis" aria-label="Summary">
     <div class="card kpi hero">
@@ -1330,12 +1330,12 @@
     $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
   }
   function applyView() {
-    const exec = prefs.view === 'exec';
+    const exec = prefs.view2 === 'exec';
     $('#execView').hidden = !exec;
     $('#dashView').hidden = exec;
-    document.querySelectorAll('.view-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view)));
+    document.querySelectorAll('.view-switch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === prefs.view2)));
   }
-  document.querySelectorAll('.view-switch button').forEach(b => b.addEventListener('click', () => { prefs.view = b.dataset.view; savePrefs(); applyView(); }));
+  document.querySelectorAll('.view-switch button').forEach(b => b.addEventListener('click', () => { prefs.view2 = b.dataset.view; savePrefs(); applyView(); }));
 
   // ---------- Render ----------
   function render() {
@@ -1356,8 +1356,9 @@
     if (hashYear) prefs.year = +hashYear[1];
     if (!Number.isInteger(prefs.year)) prefs.year = BASE_YEARS.includes(new Date().getFullYear()) ? new Date().getFullYear() : BASE_YEARS[0];
     $('#groupSel').value = prefs.group;
-    if (location.hash === '#exec') prefs.view = 'exec';
-    if (prefs.view !== 'exec') prefs.view = 'dash';
+    // Exec summary is the landing view; #dashboard links straight to the dashboard.
+    if (location.hash === '#dashboard') prefs.view2 = 'dash';
+    if (prefs.view2 !== 'dash') prefs.view2 = 'exec';
     applyView();
     applyCollapsed();
     renderLegend();
