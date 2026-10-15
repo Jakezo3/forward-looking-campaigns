@@ -26,6 +26,10 @@
     --st-progress: #2a78d6;
     --st-planning: #9aa2b4;
     --st-risk: #d03b3b;
+    /* month within a quarter (1st / 2nd / 3rd) — calendar color-coding */
+    --m1: #eb6834;
+    --m2: #1baf7a;
+    --m3: #6250d6;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -45,6 +49,9 @@
       --st-progress: #3987e5;
       --st-planning: #6c7898;
       --st-risk: #e66767;
+      --m1: #d95926;
+      --m2: #199e70;
+      --m3: #9085e9;
     }
   }
   :root[data-theme="dark"] {
@@ -64,6 +71,9 @@
     --st-progress: #3987e5;
     --st-planning: #6c7898;
     --st-risk: #e66767;
+    --m1: #d95926;
+    --m2: #199e70;
+    --m3: #9085e9;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -364,6 +374,14 @@
   .cal-chip.s-progress { border-left-color: var(--st-progress); }
   .cal-chip .ok { color: var(--st-live); font-weight: 700; }
   .cal-chip .risk { font-size: 11px; }
+  .cal-chip.m1 { --mc: var(--m1); } .cal-chip.m2 { --mc: var(--m2); } .cal-chip.m3 { --mc: var(--m3); }
+  .cal-chip[class*=" m"] { background: color-mix(in srgb, var(--mc) 11%, var(--surface)); border-top-color: color-mix(in srgb, var(--mc) 35%, var(--border)); border-right-color: color-mix(in srgb, var(--mc) 35%, var(--border)); border-bottom-color: color-mix(in srgb, var(--mc) 35%, var(--border)); }
+  .mtag { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--text-2); }
+  .mtag i, .mlegend i { width: 8px; height: 8px; border-radius: 50%; background: var(--mc, var(--muted)); display: inline-block; }
+  .mlegend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--text-2); }
+  .mlegend span { display: inline-flex; align-items: center; gap: 4px; }
+  .mlegend .m1 { --mc: var(--m1); } .mlegend .m2 { --mc: var(--m2); } .mlegend .m3 { --mc: var(--m3); }
+  .mlegend .mq i { background: none; border: 1.5px solid var(--muted); width: 7px; height: 7px; }
 
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
@@ -1398,9 +1416,13 @@
   function calChip(c) {
     const st = c.status === 'Live' ? 's-live' : c.status === 'In Progress' ? 's-progress' : '';
     const lobAll = (prefs.calLob || ALL_LOBS) === ALL_LOBS;
-    return el('button', { type: 'button', class: 'cal-chip ' + st, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
+    const L = parseLaunch(c.launch);
+    const mcls = L.kind === 'month' ? ' m' + (L.m % 3 + 1) : '';
+    return el('button', { type: 'button', class: 'cal-chip ' + st + mcls, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
       el('b', {}, c.name),
       el('small', {},
+        L.kind === 'month' ? el('span', { class: 'mtag' }, el('i', { 'aria-hidden': 'true' }), MONTHS[L.m]) : el('span', { class: 'mtag' }, 'Month TBD'),
+        el('span', {}, '·'),
         c.status === 'Live' ? el('span', { class: 'ok', 'aria-hidden': 'true' }, '✓') : null,
         el('span', {}, c.status === 'Live' ? 'Launched' : c.status),
         lobAll ? el('span', {}, '· ' + c.lob) : null,
@@ -1439,6 +1461,9 @@
       const col = el('div', { class: 'cal-qcol' + (now ? ' now' : '') + (q === 1 && y !== years[0] ? ' newyear' : '') },
         el('div', { class: 'cal-qhead' }, el('b', {}, `Q${q} ${y}`),
           el('span', {}, now ? el('span', { class: 'nowtag' }, 'Now · ') : null, `${qm[0]}–${qm[2]} · ${inQ.length}`)),
+        inQ.length ? el('div', { class: 'mlegend', 'aria-hidden': 'true' },
+          qm.map((m, i) => el('span', { class: 'm' + (i + 1) }, el('i'), m)),
+          inQ.some(c => parseLaunch(c.launch).kind === 'quarter') ? el('span', { class: 'mq' }, el('i'), 'Month TBD') : null) : null,
         inQ.length ? inQ.map(calChip) : el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : 'Nothing scheduled'));
       if (now) nowCol = col;
       cols.push(col);
