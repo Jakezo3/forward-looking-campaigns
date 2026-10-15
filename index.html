@@ -204,14 +204,14 @@
   .tl-col:hover .tl-stack, .tl-col:focus .tl-stack { filter: brightness(1.1); }
   .tl-col:focus { outline: none; }
   .tl-col:focus-visible .tl-stack { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .tl-stack { width: min(100%, 28px); display: flex; flex-direction: column-reverse; gap: 2px; }
+  .tl-stack { width: min(100%, 56px); display: flex; flex-direction: column-reverse; gap: 2px; }
   .tl-stack div:last-child { border-radius: 4px 4px 0 0; }
   .tl-val { font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
   .tl-col.now::before { content: ""; position: absolute; inset: 0 -3px; background: var(--accent-soft); border-radius: 6px 6px 0 0; z-index: -1; }
   .tl-labels { display: flex; gap: 6px; margin-top: 6px; }
   .tl-labels div { flex: 1 1 0; min-width: 0; text-align: center; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; }
   .tl-labels div.now { color: var(--accent); font-weight: 600; }
-  @media (max-width: 560px) { .tl-labels div:nth-child(even) { visibility: hidden; } }
+  @media (max-width: 560px) { .tl-labels div { font-size: 10px; } }
 
   .bars { display: grid; gap: 8px; }
   .bar-row { display: grid; grid-template-columns: minmax(80px, 34%) 1fr; gap: 10px; align-items: center; font-size: 13px; }
@@ -300,7 +300,7 @@
   .status-help { font-size: 12px; color: var(--muted); margin-top: 6px; }
   .err { color: var(--st-risk); font-size: 12px; margin-top: 4px; display: none; }
   .field.invalid .err { display: block; }
-  .field.invalid input { border-color: var(--st-risk); }
+  .field.invalid input, .field.invalid select { border-color: var(--st-risk); }
 
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
@@ -324,7 +324,9 @@
     background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px;
     font-size: 13px; font-weight: 500; opacity: 0; transition: .2s; z-index: 60; pointer-events: none;
   }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .toast-btn { background: none; border: 0; color: var(--bg); font-weight: 700; text-decoration: underline; margin-left: 14px; cursor: pointer; padding: 0; }
+  .row-actions .btn.del { color: var(--st-risk); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   footer.note { margin-top: 20px; font-size: 12px; color: var(--muted); }
 </style>
@@ -384,9 +386,9 @@
       <div class="note">Launched campaigns</div>
     </div>
     <div class="card kpi">
-      <div class="label"><span class="dot" style="background:var(--st-risk)"></span>Past target date</div>
+      <div class="label"><span class="dot" style="background:var(--st-risk)"></span>Past target</div>
       <div class="value" id="kRisk">0</div>
-      <div class="note">Not live, date has passed</div>
+      <div class="note">Launch passed, not live</div>
     </div>
     <div class="card kpi">
       <div class="label">Next launch</div>
@@ -398,15 +400,13 @@
   <!-- Filters -->
   <section class="card filters" id="filters" aria-label="Filters">
     <div class="filter-head">
-      <input class="search" id="search" type="search" placeholder="Search name, description, tags…" aria-label="Search campaigns">
+      <input class="search" id="search" type="search" placeholder="Search name, description, owner…" aria-label="Search campaigns">
       <select class="ctl" id="windowSel" aria-label="Launch window">
-        <option value="all">All launch dates</option>
-        <option value="30">Next 30 days</option>
-        <option value="90">Next 90 days</option>
-        <option value="180">Next 6 months</option>
-        <option value="quarter">This quarter</option>
-        <option value="overdue">Past target date</option>
-        <option value="nodate">No date set</option>
+        <option value="all">All launch months</option>
+        <option value="thismonth">This month</option>
+        <option value="thisquarter">This quarter</option>
+        <option value="nextquarter">Next quarter</option>
+        <option value="overdue">Past target</option>
       </select>
       <span class="active-count" id="activeCount"></span>
       <button class="btn ghost" id="resetFilters">Reset</button>
@@ -421,7 +421,7 @@
       <div class="chart-head">
         <div>
           <h2>Launch timeline</h2>
-          <p>Campaigns per month by estimated launch date</p>
+          <p>Campaigns per quarter by estimated launch</p>
         </div>
         <div class="legend" id="legend1"></div>
       </div>
@@ -482,9 +482,8 @@
         <div class="err">Choose or enter a LoB.</div>
       </div>
       <div class="field">
-        <label for="type">Type</label>
-        <input type="text" id="type" name="type" list="typeList" autocomplete="off">
-        <datalist id="typeList"></datalist>
+        <span class="lbl">Type</span>
+        <div class="seg" id="typeBox"></div>
       </div>
 
       <div class="field">
@@ -509,20 +508,16 @@
         <div class="status-help" id="statusHelp"></div>
       </div>
 
-      <div class="field">
-        <label for="year">Fiscal year</label>
-        <select id="year" name="year"></select>
-      </div>
-      <div class="field"></div>
-
-      <div class="field" id="fDate">
-        <label for="launchDate" id="dateLabel">Estimated launch date</label>
-        <input type="date" id="launchDate" name="launchDate">
-        <div class="err">Add a launch date (or a target window).</div>
-      </div>
-      <div class="field">
-        <label for="window">Target window <span class="hint">(if no exact date)</span></label>
-        <select id="window" name="window"></select>
+      <div class="field span2" id="fDate">
+        <span class="lbl" id="dateLabel">Estimated launch</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <div class="seg">
+            <label><input type="radio" name="launchKind" value="month" checked> Month</label>
+            <label><input type="radio" name="launchKind" value="quarter"> Quarter</label>
+          </div>
+          <select id="launch" name="launch" aria-labelledby="dateLabel" style="flex:1 1 180px;width:auto"></select>
+        </div>
+        <div class="err">Pick an estimated launch month or quarter.</div>
       </div>
 
       <div class="field">
@@ -534,11 +529,6 @@
         <input type="text" id="owner" name="owner" autocomplete="off">
       </div>
 
-      <div class="field span2">
-        <label for="tags">Other tags <span class="hint">(comma-separated, e.g. Partner, AI, Mythbusting, Cross-sell)</span></label>
-        <input type="text" id="tags" name="tags" list="tagList" autocomplete="off">
-        <datalist id="tagList"></datalist>
-      </div>
       <div class="field span2">
         <label for="notes">Notes <span class="hint">(optional)</span></label>
         <textarea id="notes" name="notes"></textarea>
@@ -574,16 +564,15 @@
     'AI/Joule', 'Autonomous Enterprise', 'BTP/BDC', 'Cloud ERP Private', 'Cloud ERP Public',
     'CX', 'F&SM', 'HCM', 'SAP Business One', 'SCM', 'Sovereign Cloud', 'Sustainability'
   ];
-  const TYPES = ['Campaign', 'Event-in-a-box', 'Activation Kit'];
+  const TYPES = ['Campaign', 'Campaign in a Box'];
   const SEGMENTS = ['Corporate', 'Enterprise'];
   const MOTIONS = ['Net New', 'Install Base'];
   const NEW_REFRESH = ['New', 'Refresh'];
   const STATUSES = [
-    { id: 'Planning',    color: 'var(--st-planning)', help: 'Scoped but not yet in build. Add an estimated date or window.' },
-    { id: 'In Progress', color: 'var(--st-progress)', help: 'Being built. Add the estimated launch date.' },
-    { id: 'Live',        color: 'var(--st-live)',     help: 'Launched. The date is the actual launch date.' }
+    { id: 'Planning',    color: 'var(--st-planning)', help: 'Scoped but not yet in build.' },
+    { id: 'In Progress', color: 'var(--st-progress)', help: 'Being built.' },
+    { id: 'Live',        color: 'var(--st-live)',     help: 'Launched. Set the month or quarter it went live.' }
   ];
-  const WINDOWS = ['', 'Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2'];
   const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const parseDate = s => { if (!s) return null; const [y, m, d] = String(s).split('-').map(Number); return y ? new Date(y, m - 1, d || 1) : null; };
 
@@ -595,7 +584,13 @@
 
   let campaigns = [];
   const BASE_YEARS = [2026, 2027];
-  const yearOfDate = s => { const d = parseDate(s); return d ? d.getFullYear() : null; };
+  // Launch is stored as "YYYY-MM" (a month) or "YYYY-Qn" (a quarter).
+  const parseLaunch = s => {
+    let m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(s || '');
+    if (m) return { y: +m[1], kind: 'month', m: +m[2] - 1, q: Math.floor((+m[2] - 1) / 3) + 1 };
+    m = /^(\d{4})-Q([1-4])$/.exec(s || '');
+    return m ? { y: +m[1], kind: 'quarter', q: +m[2] } : null;
+  };
   const prefs = Object.assign({ lobs: DEFAULT_LOBS.slice(), off: {}, group: 'none', sort: { key: 'date', dir: 1 }, collapsed: false }, store.get(PREF_KEY) || {});
   // Campaigns live in the artifact's shared database (collection "campaigns", one doc per campaign).
   // If the database isn't available in this view, fall back to this browser's storage.
@@ -659,35 +654,50 @@
   const uid = () => 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const splitList = s => [...new Set(String(s || '').split(',').map(x => x.trim()).filter(Boolean))];
   const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
-  const fmtDate = s => { const d = parseDate(s); return d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : ''; };
-  const daysUntil = s => { const d = parseDate(s); return d ? Math.round((d - today()) / 864e5) : null; };
+  const launchLabel = s => { const L = parseLaunch(s); return !L ? '' : L.kind === 'month' ? `${MONTHS[L.m]} ${L.y}` : `Q${L.q} ${L.y}`; };
+  const launchStartMonth = L => L.kind === 'month' ? L.m : (L.q - 1) * 3;
+  const launchEnd = L => new Date(L.y, L.kind === 'month' ? L.m + 1 : L.q * 3, 1);
+  const launchSortKey = s => { const L = parseLaunch(s); return L ? L.y * 12 + (L.kind === 'month' ? L.m : L.q * 3 - 0.5) : 1e9; };
+  const monthsAway = L => { const t = today(); return (L.y - t.getFullYear()) * 12 + launchStartMonth(L) - t.getMonth(); };
+  function relLaunch(L) {
+    const t = today();
+    if (L.kind === 'quarter' && L.y === t.getFullYear() && L.q === Math.floor(t.getMonth() / 3) + 1) return 'This quarter';
+    const n = monthsAway(L);
+    if (n === 0) return 'This month';
+    if (n === 1) return 'Next month';
+    return n > 1 ? `in ${n} months` : '';
+  }
   const statusOf = id => STATUSES.find(s => s.id === id) || STATUSES[0];
-  const isEiab = c => /event/i.test(c.type || '');
-  const isOverdue = c => c.status !== 'Live' && c.launchDate && daysUntil(c.launchDate) < 0;
-  const quarterOf = c => {
-    const d = parseDate(c.launchDate);
-    if (d) return `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`;
-    return c.window ? c.window : 'No date';
+  const isEiab = c => c.type === 'Campaign in a Box';
+  const isOverdue = c => { const L = parseLaunch(c.launch); return c.status !== 'Live' && !!L && launchEnd(L) <= today(); };
+  const quarterOf = c => { const L = parseLaunch(c.launch); return L ? `Q${L.q} ${L.y}` : 'No date'; };
+  const toast = (msg, action) => {
+    const t = $('#toast');
+    t.replaceChildren(msg);
+    if (action) t.append(el('button', { type: 'button', class: 'toast-btn', onclick: () => { t.classList.remove('show'); action.fn(); } }, action.label));
+    t.classList.add('show'); clearTimeout(toast.t);
+    toast.t = setTimeout(() => t.classList.remove('show'), action ? 6000 : 2200);
   };
-  const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); };
 
   function normalize(c) {
     const arr = v => Array.isArray(v) ? v.map(String).filter(Boolean) : splitList(v);
+    // accept older records that used an exact date or a Qn window
+    let launch = parseLaunch(c.launch) ? c.launch : '';
+    if (!launch && /^\d{4}-\d{2}-\d{2}$/.test(c.launchDate || '')) launch = c.launchDate.slice(0, 7);
+    if (!launch && /^Q[1-4]$/.test(c.window || '') && +c.year > 2000) launch = `${+c.year}-${c.window}`;
     return {
       id: c.id || uid(),
       name: String(c.name || '').trim(),
       description: String(c.description || ''),
       lob: String(c.lob || '').trim() || 'Unassigned',
-      type: String(c.type || 'Campaign').trim() || 'Campaign',
+      type: /box/i.test(c.type || '') ? 'Campaign in a Box' : 'Campaign',
       newRefresh: NEW_REFRESH.includes(c.newRefresh) ? c.newRefresh : 'New',
       segment: arr(c.segment).filter(x => SEGMENTS.includes(x)),
       motion: arr(c.motion).filter(x => MOTIONS.includes(x)),
       status: STATUSES.some(s => s.id === c.status) ? c.status : 'Planning',
-      launchDate: /^\d{4}-\d{2}-\d{2}$/.test(c.launchDate || '') ? c.launchDate : '',
-      year: yearOfDate(c.launchDate) || (Number.isInteger(+c.year) && +c.year > 2000 ? +c.year : new Date().getFullYear()),
-      window: WINDOWS.includes(c.window) ? c.window : '',
+      launch,
+      year: parseLaunch(launch)?.y || (Number.isInteger(+c.year) && +c.year > 2000 ? +c.year : new Date().getFullYear()),
       languages: arr(c.languages),
-      tags: arr(c.tags),
       owner: String(c.owner || ''),
       notes: String(c.notes || ''),
       createdAt: c.createdAt || new Date().toISOString(),
@@ -702,9 +712,8 @@
     { key: 'segment',    label: 'Segment',          values: () => SEGMENTS, of: c => c.segment, emptyLabel: 'Unspecified' },
     { key: 'motion',     label: 'Motion',           values: () => MOTIONS,  of: c => c.motion,  emptyLabel: 'Unspecified' },
     { key: 'newRefresh', label: 'New / Refresh',    values: () => NEW_REFRESH, of: c => [c.newRefresh] },
-    { key: 'type',       label: 'Type',             values: () => uniq([...TYPES, ...campaigns.map(c => c.type)]), of: c => [c.type] },
-    { key: 'status',     label: 'Status',           values: () => STATUSES.map(s => s.id), of: c => [c.status] },
-    { key: 'tags',       label: 'Other tags',       values: () => uniq(campaigns.flatMap(c => c.tags)).sort((a, b) => a.localeCompare(b)), of: c => c.tags, emptyLabel: 'Untagged' }
+    { key: 'type',       label: 'Type',             values: () => TYPES, of: c => [c.type] },
+    { key: 'status',     label: 'Status',           values: () => STATUSES.map(s => s.id), of: c => [c.status] }
   ];
   function uniq(a) { return [...new Set(a.filter(Boolean))]; }
   const offSet = key => new Set(prefs.off[key] || []);
@@ -717,15 +726,14 @@
   }
   function passesWindow(c, w) {
     if (w === 'all') return true;
-    if (w === 'nodate') return !c.launchDate;
     if (w === 'overdue') return isOverdue(c);
-    const d = parseDate(c.launchDate);
-    if (!d) return false;
-    const t = today();
-    if (w === 'quarter') return d.getFullYear() === t.getFullYear() && Math.floor(d.getMonth() / 3) === Math.floor(t.getMonth() / 3);
-    if (w === 'year') return d.getFullYear() === t.getFullYear();
-    const n = daysUntil(c.launchDate);
-    return n >= 0 && n <= Number(w);
+    const L = parseLaunch(c.launch);
+    if (!L) return false;
+    const t = today(), tq = Math.floor(t.getMonth() / 3) + 1;
+    if (w === 'thismonth') return L.kind === 'month' && L.y === t.getFullYear() && L.m === t.getMonth();
+    if (w === 'thisquarter') return L.y === t.getFullYear() && L.q === tq;
+    if (w === 'nextquarter') { const ny = tq === 4 ? t.getFullYear() + 1 : t.getFullYear(), nq = tq === 4 ? 1 : tq + 1; return L.y === ny && L.q === nq; }
+    return true;
   }
   // ---------- Year tabs ----------
   const allYears = () => [...new Set([...BASE_YEARS, prefs.year, ...campaigns.map(c => c.year)].filter(Number.isInteger))].sort((a, b) => a - b);
@@ -757,7 +765,7 @@
       for (const g of GROUPS) if (g.key !== except && !passesGroup(c, g, offs[g.key])) return false;
       if (!passesWindow(c, w)) return false;
       if (q) {
-        const hay = [c.name, c.description, c.lob, c.type, c.owner, c.notes, ...c.tags, ...c.languages].join(' ').toLowerCase();
+        const hay = [c.name, c.description, c.lob, c.type, c.owner, c.notes, ...c.languages].join(' ').toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -779,7 +787,7 @@
       offTotal += prefs.off[g.key].length;
 
       const chips = el('div', { class: 'chips' });
-      if (!values.length) chips.append(el('span', { class: 'empty-chips' }, g.key === 'tags' ? 'Tags you add to campaigns will show up here.' : 'None yet'));
+      if (!values.length) chips.append(el('span', { class: 'empty-chips' }, 'None yet'));
       for (const v of values) {
         const on = !off.has(v);
         const n = pool.filter(c => v === g.emptyLabel ? !g.of(c).length : g.of(c).includes(v)).length;
@@ -799,7 +807,7 @@
     }
     const w = $('#windowSel').value !== 'all' ? 1 : 0;
     const q = $('#search').value.trim() ? 1 : 0;
-    $('#activeCount').textContent = (offTotal + w + q) ? `${offTotal} toggled off${w ? ' · date window' : ''}${q ? ' · search' : ''}` : '';
+    $('#activeCount').textContent = (offTotal + w + q) ? `${offTotal} toggled off${w ? ' · launch window' : ''}${q ? ' · search' : ''}` : '';
   }
   function toggle(key, v) {
     const s = offSet(key);
@@ -813,18 +821,18 @@
     const upcoming = list.filter(c => c.status !== 'Live');
     const eiab = upcoming.filter(isEiab).length;
     $('#kUpcoming').textContent = upcoming.length;
-    $('#kUpcomingNote').textContent = `${upcoming.length - eiab} campaign${upcoming.length - eiab === 1 ? '' : 's'} · ${eiab} EiaB`;
+    $('#kUpcomingNote').textContent = `${upcoming.length - eiab} campaign${upcoming.length - eiab === 1 ? '' : 's'} · ${eiab} in a box`;
     $('#kNew').textContent = list.filter(c => c.newRefresh === 'New').length;
     $('#kRefresh').textContent = list.filter(c => c.newRefresh === 'Refresh').length;
     $('#kLive').textContent = list.filter(c => c.status === 'Live').length;
     $('#kRisk').textContent = list.filter(isOverdue).length;
-    const next = upcoming.filter(c => c.launchDate && daysUntil(c.launchDate) >= 0)
-      .sort((a, b) => a.launchDate.localeCompare(b.launchDate))[0];
+    const next = upcoming.filter(c => { const L = parseLaunch(c.launch); return L && launchEnd(L) > today(); })
+      .sort((a, b) => launchSortKey(a.launch) - launchSortKey(b.launch))[0];
     if (next) {
-      const n = daysUntil(next.launchDate);
+      const rel = relLaunch(parseLaunch(next.launch));
       $('#kNext').textContent = next.name;
       $('#kNext').title = next.name;
-      $('#kNextNote').textContent = `${fmtDate(next.launchDate)} · ${n === 0 ? 'today' : `in ${n} day${n === 1 ? '' : 's'}`}`;
+      $('#kNextNote').textContent = launchLabel(next.launch) + (rel ? ` · ${rel}` : '');
     } else {
       $('#kNext').textContent = '—'; $('#kNext').title = '';
       $('#kNextNote').textContent = 'Nothing scheduled';
@@ -863,13 +871,14 @@
   function renderTimeline(list) {
     const host = $('#timeline');
     const t = today();
-    // Jan–Dec of the selected year, plus a bucket for campaigns with only a target window.
+    // Q1–Q4 of the selected year; month-level launches roll up into their quarter.
     const y = prefs.year;
-    const buckets = MONTHS.map((m, i) => ({ label: m, full: `${m} ${y}`, now: t.getFullYear() === y && t.getMonth() === i, items: [] }));
-    const nodate = { label: 'No date', full: `No date set (${y})`, items: [] };
+    const qm = q => MONTHS.slice((q - 1) * 3, q * 3);
+    const buckets = [1, 2, 3, 4].map(q => ({ label: `Q${q} (${qm(q)[0]}–${qm(q)[2]})`, full: `Q${q} ${y}`, now: t.getFullYear() === y && Math.floor(t.getMonth() / 3) + 1 === q, items: [] }));
+    const nodate = { label: 'No launch set', full: `No launch set (${y})`, items: [] };
     for (const c of list) {
-      const d = parseDate(c.launchDate);
-      if (d && d.getFullYear() === y) buckets[d.getMonth()].items.push(c);
+      const L = parseLaunch(c.launch);
+      if (L && L.y === y) buckets[L.q - 1].items.push(c);
       else nodate.items.push(c);
     }
     const cols = [...buckets, ...(nodate.items.length ? [nodate] : [])];
@@ -930,11 +939,11 @@
     { key: 'newRefresh', label: 'New / Refresh' },
     { key: 'type',   label: 'Type' },
     { key: 'seg',    label: 'Segment · Motion', nosort: true },
-    { key: 'tags',   label: 'Tags · Languages', nosort: true },
+    { key: 'lang',   label: 'Languages', nosort: true },
     { key: 'act',    label: '', nosort: true }
   ];
   function sortVal(c, key) {
-    if (key === 'date') return c.launchDate || (c.window ? '9998-' + c.window : '9999');
+    if (key === 'date') return launchSortKey(c.launch);
     if (key === 'status') return STATUSES.findIndex(s => s.id === c.status);
     return String(c[key] || '').toLowerCase();
   }
@@ -954,14 +963,14 @@
       host.replaceChildren(el('div', { class: 'empty' },
         el('div', { class: 'ill' }, svgIcon('M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z')),
         el('h3', {}, `No ${prefs.year} campaigns yet`),
-        el('p', {}, 'Add the campaigns coming down the pipeline — whether they’re live or still in progress — with an estimated launch date, and tag them by LoB, segment and motion.'),
+        el('p', {}, 'Add the campaigns coming down the pipeline — whether they’re live or still in progress — with an estimated launch month or quarter, and tag them by LoB, segment and motion.'),
         el('button', { class: 'btn primary write-only', type: 'button', onclick: () => openForm() }, `Add a ${prefs.year} campaign`)));
       return;
     }
     if (!list.length) {
       host.replaceChildren(el('div', { class: 'empty' },
         el('h3', {}, 'Nothing matches'),
-        el('p', {}, 'Every campaign is hidden by the current toggles, date window or search.'),
+        el('p', {}, 'Every campaign is hidden by the current toggles, launch window or search.'),
         el('button', { class: 'btn', type: 'button', onclick: resetFilters }, 'Reset filters')));
       return;
     }
@@ -998,28 +1007,23 @@
 
   function row(c) {
     const s = statusOf(c.status);
-    const n = daysUntil(c.launchDate);
-    let dateSub = '';
-    if (c.launchDate) {
-      if (c.status === 'Live') dateSub = 'Launched';
-      else if (n === 0) dateSub = 'Today';
-      else if (n > 0) dateSub = `in ${n} day${n === 1 ? '' : 's'}`;
-    }
+    const L = parseLaunch(c.launch);
+    const dateSub = !L ? '' : c.status === 'Live' ? 'Launched' : relLaunch(L);
     const tr = el('tr', { tabindex: '0', onclick: e => { if (!e.target.closest('button')) openForm(c); }, onkeydown: e => { if (e.key === 'Enter' && e.target === tr) openForm(c); } },
       el('td', { class: 'name-cell' }, el('b', {}, c.name), c.description ? el('small', {}, c.description) : null),
       el('td', {}, c.lob),
       el('td', {}, el('span', { class: 'pill' }, el('span', { class: 'dot', style: `background:${s.color}` }), c.status)),
       el('td', { class: 'date-cell' },
-        c.launchDate ? fmtDate(c.launchDate) : (c.window ? `Target ${c.window}` : el('span', { style: 'color:var(--muted)' }, 'Not set')),
-        isOverdue(c) ? el('small', {}, el('span', { class: 'risk' }, '⚠ Past target date')) : dateSub ? el('small', {}, dateSub) : null,
-        c.launchDate && c.window ? el('small', {}, `Window ${c.window}`) : null),
+        L ? launchLabel(c.launch) : el('span', { style: 'color:var(--muted)' }, 'Not set'),
+        isOverdue(c) ? el('small', {}, el('span', { class: 'risk' }, '⚠ Past target')) : dateSub ? el('small', {}, dateSub) : null),
       el('td', {}, c.newRefresh),
       el('td', {}, c.type),
       el('td', {}, [...c.segment, ...c.motion].map(x => el('span', { class: 'tag strong' }, x)), (!c.segment.length && !c.motion.length) ? el('span', { style: 'color:var(--muted)' }, '—') : null),
-      el('td', {}, c.tags.map(x => el('span', { class: 'tag' }, x)), c.languages.length ? el('span', { class: 'tag', title: 'Language versions' }, c.languages.join(', ')) : null),
+      el('td', {}, c.languages.length ? el('span', { class: 'tag', title: 'Language versions' }, c.languages.join(', ')) : el('span', { style: 'color:var(--muted)' }, '—')),
       el('td', {}, el('div', { class: 'row-actions' },
         c.status !== 'Live' && canWrite ? el('button', { class: 'btn ghost', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, 'Mark live') : null,
-        el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(c) }, canWrite ? 'Edit' : 'View')))
+        el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(c) }, canWrite ? 'Edit' : 'View'),
+        canWrite ? el('button', { class: 'btn ghost del', type: 'button', title: 'Delete campaign', onclick: () => deleteCampaign(c) }, 'Delete') : null))
     );
     return tr;
   }
@@ -1034,8 +1038,8 @@
 
   function markLive(c) {
     c.status = 'Live';
-    const t = today();
-    if (!c.launchDate || daysUntil(c.launchDate) > 0) c.launchDate = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    const t = today(), L = parseLaunch(c.launch);
+    if (!L || monthsAway(L) > 0) { c.launch = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; c.year = t.getFullYear(); }
     c.updatedAt = new Date().toISOString();
     render();
     putCampaign(c).then(ok => ok && toast(`“${c.name}” marked live`));
@@ -1047,19 +1051,29 @@
 
   function buildFormOptions() {
     $('#lobList').replaceChildren(...uniq([...prefs.lobs, ...campaigns.map(c => c.lob)]).sort().map(v => el('option', { value: v })));
-    $('#typeList').replaceChildren(...uniq([...TYPES, ...campaigns.map(c => c.type)]).map(v => el('option', { value: v })));
-    $('#tagList').replaceChildren(...uniq(campaigns.flatMap(c => c.tags)).map(v => el('option', { value: v })));
+    $('#typeBox').replaceChildren(...TYPES.map(v => el('label', {}, el('input', { type: 'radio', name: 'type', value: v }), v)));
     $('#segBox').replaceChildren(...SEGMENTS.map(v => el('label', {}, el('input', { type: 'checkbox', name: 'segment', value: v }), v)));
     $('#motionBox').replaceChildren(...MOTIONS.map(v => el('label', {}, el('input', { type: 'checkbox', name: 'motion', value: v }), v)));
     $('#statusBox').replaceChildren(...STATUSES.map(s => el('label', {}, el('input', { type: 'radio', name: 'status', value: s.id }), el('span', { class: 'dot', style: `background:${s.color}` }), s.id)));
-    $('#window').replaceChildren(...WINDOWS.map(w => el('option', { value: w }, w || '—')));
-    const ys = allYears(); const nextY = ys[ys.length - 1] + 1;
-    $('#year').replaceChildren(...[...ys, nextY].map(y => el('option', { value: y }, 'FY ' + y)));
+  }
+  // Launch picker: months or quarters for each tab year (plus the year after the last one).
+  function fillLaunchOptions(keep) {
+    const kind = form.launchKind.value;
+    const ys = allYears(); const years = [...ys, ys[ys.length - 1] + 1];
+    const k = parseLaunch(keep);
+    if (k && !years.includes(k.y)) years.push(k.y), years.sort((a, b) => a - b);
+    const sel = $('#launch');
+    sel.replaceChildren(el('option', { value: '' }, kind === 'month' ? 'Choose a month…' : 'Choose a quarter…'),
+      ...years.map(y => el('optgroup', { label: String(y) }, ...(kind === 'month'
+        ? MONTHS.map((m, i) => el('option', { value: `${y}-${String(i + 1).padStart(2, '0')}` }, `${m} ${y}`))
+        : [1, 2, 3, 4].map(q => el('option', { value: `${y}-Q${q}` }, `Q${q} ${y}`))))));
+    if (k && k.kind === kind) sel.value = keep;
+    else if (k) sel.value = kind === 'quarter' ? `${k.y}-Q${k.q}` : `${k.y}-${String((k.q - 1) * 3 + 1).padStart(2, '0')}`;
   }
   function syncStatusUI() {
     const st = form.status.value;
     $('#statusHelp').textContent = statusOf(st).help;
-    $('#dateLabel').textContent = st === 'Live' ? 'Launch date' : 'Estimated launch date';
+    $('#dateLabel').textContent = st === 'Live' ? 'Launched in' : 'Estimated launch';
   }
 
   function openForm(c) {
@@ -1069,19 +1083,17 @@
     editingId = c ? c.id : null;
     $('#dlgTitle').textContent = c ? 'Edit campaign' : 'Add campaign';
     $('#deleteBtn').style.display = c ? '' : 'none';
-    const v = c || { newRefresh: 'New', status: 'Planning', type: 'Campaign', segment: [], motion: [], tags: [], languages: [] };
+    const v = c || { newRefresh: 'New', status: 'Planning', type: 'Campaign', segment: [], motion: [], languages: [] };
     form.name.value = v.name || '';
     form.description.value = v.description || '';
     form.lob.value = v.lob && v.lob !== 'Unassigned' ? v.lob : '';
     form.type.value = v.type || 'Campaign';
     form.newRefresh.value = v.newRefresh;
     form.status.value = v.status;
-    form.launchDate.value = v.launchDate || '';
-    form.window.value = v.window || '';
-    form.year.value = String(v.year || prefs.year);
+    form.launchKind.value = parseLaunch(v.launch)?.kind || 'month';
+    fillLaunchOptions(v.launch || '');
     form.languages.value = (v.languages || []).join(', ');
     form.owner.value = v.owner || '';
-    form.tags.value = (v.tags || []).join(', ');
     form.notes.value = v.notes || '';
     form.querySelectorAll('input[name=segment]').forEach(i => i.checked = v.segment.includes(i.value));
     form.querySelectorAll('input[name=motion]').forEach(i => i.checked = v.motion.includes(i.value));
@@ -1092,8 +1104,7 @@
 
   form.addEventListener('change', e => {
     if (e.target.name === 'status') syncStatusUI();
-    if (e.target.name === 'launchDate') { const y = yearOfDate(form.launchDate.value); if (y) { if (![...form.year.options].some(o => +o.value === y)) form.year.append(el('option', { value: y }, 'FY ' + y)); form.year.value = String(y); } }
-    if (e.target.name === 'year') { const y = yearOfDate(form.launchDate.value); if (y && y !== +form.year.value) form.launchDate.value = ''; }
+    if (e.target.name === 'launchKind') fillLaunchOptions(form.launch.value);
   });
   dlg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dlg.close()));
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
@@ -1102,24 +1113,23 @@
     e.preventDefault();
     const name = form.name.value.trim(), lob = form.lob.value.trim();
     const status = form.status.value;
-    const date = form.launchDate.value, win = form.window.value;
+    const launch = form.launch.value;
     let ok = true;
     const flag = (id, bad) => { $(id).classList.toggle('invalid', bad); if (bad) ok = false; };
     flag('#fName', !name);
     flag('#fLob', !lob);
-    flag('#fDate', status !== 'Live' ? (!date && !win) : false);
-    if (!ok) { form.querySelector('.field.invalid input, .field.invalid textarea')?.focus(); return; }
+    flag('#fDate', !parseLaunch(launch));
+    if (!ok) { form.querySelector('.field.invalid input, .field.invalid select, .field.invalid textarea')?.focus(); return; }
 
     const data = normalize({
       id: editingId || undefined,
-      name, lob, status, launchDate: date, window: win, year: +form.year.value,
+      name, lob, status, launch,
       description: form.description.value.trim(),
-      type: form.type.value.trim(),
+      type: form.type.value,
       newRefresh: form.newRefresh.value,
       segment: [...form.querySelectorAll('input[name=segment]:checked')].map(i => i.value),
       motion: [...form.querySelectorAll('input[name=motion]:checked')].map(i => i.value),
       languages: splitList(form.languages.value.toUpperCase()),
-      tags: splitList(form.tags.value),
       owner: form.owner.value.trim(),
       notes: form.notes.value.trim(),
       createdAt: editingId ? campaigns.find(c => c.id === editingId)?.createdAt : undefined,
@@ -1141,16 +1151,19 @@
     putCampaign(data).then(ok => ok && toast(wasEdit ? 'Campaign updated' : 'Campaign added'));
   });
 
-  $('#deleteBtn').addEventListener('click', async () => {
+  function deleteCampaign(c) {
+    campaigns = campaigns.filter(x => x.id !== c.id);
+    render();
+    removeCampaign(c.id).then(ok => ok && toast(`Deleted “${c.name}”`, {
+      label: 'Undo',
+      fn: () => { campaigns.push(c); render(); putCampaign(c).then(r => r && toast('Campaign restored')); }
+    }));
+  }
+  $('#deleteBtn').addEventListener('click', () => {
     const c = campaigns.find(x => x.id === editingId);
     if (!c) return;
     dlg.close();
-    const ok = await ask('Delete campaign?', `“${c.name}” will be removed for everyone. This can’t be undone.`,
-      [{ label: 'Cancel', value: false }, { label: 'Delete', value: true, kind: 'primary' }]);
-    if (!ok) return;
-    campaigns = campaigns.filter(x => x.id !== c.id);
-    render();
-    if (await removeCampaign(c.id)) toast('Campaign deleted');
+    deleteCampaign(c);
   });
 
   // ---------- Data menu ----------
@@ -1181,8 +1194,8 @@
     if (act === 'export-json') {
       download(`campaigns-${stamp()}.json`, JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), campaigns }, null, 2), 'application/json');
     } else if (act === 'export-csv') {
-      const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch date', 'Target window', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Tags', 'Owner', 'Notes'];
-      const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, c.launchDate, c.window, c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.tags.join('; '), c.owner, c.notes].map(v => csvCell(String(v))).join(','));
+      const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Owner', 'Notes'];
+      const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, launchLabel(c.launch), c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.owner, c.notes].map(v => csvCell(String(v))).join(','));
       download(`campaigns-${prefs.year}-${stamp()}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
     } else if (act === 'import') {
       $('#importFile').click();

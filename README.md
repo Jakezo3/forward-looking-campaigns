@@ -7,18 +7,17 @@ It starts with **no campaigns**; add them with **Add campaign**.
 
 ## What it tracks
 
-Name, description, line of business, type (Campaign / Event-in-a-box / Activation Kit, or custom),
-New vs. Refresh, segment (Corporate / Enterprise), motion (Net New / Install Base),
-status (Planning / In Progress / Live), estimated launch date or target window (Q1–Q4, H1/H2),
-fiscal year, language versions, owner, tags and notes.
+Name, description, line of business, type (Campaign / Campaign in a Box), New vs. Refresh,
+segment (Corporate / Enterprise), motion (Net New / Install Base), status (Planning / In Progress / Live),
+estimated launch month or quarter (this also sets the year tab), language versions, owner and notes.
 
 ## Features
 
 - **Year tabs** (2026, 2027, plus any other year a campaign uses). Everything on the page follows the selected tab.
-- **Toggles** for every LoB, segment, motion, New/Refresh, type, status and tag, plus search and a launch-date window.
-- **Summary tiles**: upcoming (campaigns vs. EiaB), net new, refreshed, live, past target date, next launch.
-- **Launch timeline** (Jan–Dec) and **by-LoB** chart, both split by status.
-- **Campaign table**: sortable, groupable by LoB, status or quarter, with one-click *Mark live*.
+- **Toggles** for every LoB, segment, motion, New/Refresh, type and status, plus search and a launch window (this month, this quarter, next quarter, past target).
+- **Summary tiles**: upcoming (campaigns vs. campaigns in a box), net new, refreshed, live, past target, next launch.
+- **Launch timeline** by quarter and **by-LoB** chart, both split by status.
+- **Campaign table**: sortable, groupable by LoB, status or quarter, with one-click *Mark live* and *Delete* (with Undo).
 
 ## Where data is saved
 
