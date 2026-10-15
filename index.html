@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Forward Looking Campaigns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f6f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f7;
+    --text: #0e1530;
+    --text-2: #4a5470;
+    --muted: #6f7891;
+    --border: #dfe3ec;
+    --accent: #24459e;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(36, 69, 158, 0.09);
+    --shadow: 0 1px 2px rgba(14, 21, 48, 0.06), 0 4px 16px rgba(14, 21, 48, 0.05);
+    /* status — always paired with a text label */
+    --st-live: #0a8f0a;
+    --st-progress: #2a78d6;
+    --st-planning: #9aa2b4;
+    --st-risk: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0b1331;
+      --surface: #121c42;
+      --surface-2: #182552;
+      --text: #eceff5;
+      --text-2: #a3aebe;
+      --muted: #7f8db0;
+      --border: rgba(163, 174, 190, 0.18);
+      --accent: #9fb2e8;
+      --accent-ink: #0b1331;
+      --accent-soft: rgba(159, 178, 232, 0.12);
+      --shadow: none;
+      --st-live: #2fbf2f;
+      --st-progress: #3987e5;
+      --st-planning: #6c7898;
+      --st-risk: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0b1331;
+    --surface: #121c42;
+    --surface-2: #182552;
+    --text: #eceff5;
+    --text-2: #a3aebe;
+    --muted: #7f8db0;
+    --border: rgba(163, 174, 190, 0.18);
+    --accent: #9fb2e8;
+    --accent-ink: #0b1331;
+    --accent-soft: rgba(159, 178, 232, 0.12);
+    --shadow: none;
+    --st-live: #2fbf2f;
+    --st-progress: #3987e5;
+    --st-planning: #6c7898;
+    --st-risk: #e66767;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap {
+    max-width: 1320px; margin: 0 auto; padding-block: 24px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  @media (min-width: 720px) {
+    .wrap {
+      padding-block: 32px 80px;
+      padding-left: max(32px, env(safe-area-inset-left, 0px));
+      padding-right: max(32px, env(safe-area-inset-right, 0px));
+    }
+  }
+  .ask-body { padding: 18px 20px; color: var(--text-2); max-width: 60ch; }
+  #ask { width: min(460px, calc(100vw - 24px)); }
+  .readonly .write-only { display: none !important; }
+
+  /* Header */
+  header.top {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: flex-end; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: clamp(26px, 4vw, 34px); line-height: 1.15; }
+  h2 { font-size: 15px; font-weight: 600; }
+  .sub { color: var(--text-2); margin-top: 4px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    font-weight: 500; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; border-color: transparent; }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn.danger { color: var(--st-risk); }
+  .btn svg { width: 16px; height: 16px; }
+  .icon-btn { width: 36px; padding: 0; justify-content: center; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .menu { position: relative; }
+  .menu-list {
+    position: absolute; right: 0; top: 42px; z-index: 20; min-width: 210px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 6px; display: none;
+  }
+  .menu.open .menu-list { display: block; }
+  .menu-list button {
+    display: block; width: 100%; text-align: left; background: none; border: 0;
+    padding: 8px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .menu-list button:hover { background: var(--surface-2); }
+  .menu-list hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+  }
+
+  /* KPIs */
+  .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+  @media (min-width: 720px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 1100px) { .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  .kpi { padding: 16px 18px; min-width: 0; }
+  .kpi .label { font-size: 12px; font-weight: 500; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
+  .kpi .value { font-size: 32px; font-weight: 700; line-height: 1.15; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .kpi .value.small { font-size: 16px; font-weight: 600; line-height: 1.3; margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kpi .note { font-size: 12px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kpi.hero { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .kpi.hero .label, .kpi.hero .note { color: inherit; opacity: .8; }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* Filters */
+  .filters { padding: 14px 16px; margin-bottom: 16px; }
+  .filter-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .search {
+    flex: 1 1 220px; height: 36px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); padding: 0 12px; min-width: 0;
+  }
+  select.ctl {
+    height: 36px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); padding: 0 10px; max-width: 100%;
+  }
+  .active-count { font-size: 12px; color: var(--muted); }
+  .filter-groups { display: grid; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .filters.collapsed .filter-groups { display: none; }
+  .fg-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .fg-title span { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-2); }
+  .fg-title button { background: none; border: 0; color: var(--accent); font-size: 12px; cursor: pointer; padding: 0; }
+  .fg-title button:hover { text-decoration: underline; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 11px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface-2);
+    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 500;
+    text-decoration: line-through; text-decoration-color: transparent;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--accent-soft); border-color: var(--accent); color: var(--text);
+  }
+  .chip[aria-pressed="false"] { text-decoration-color: var(--muted); opacity: .8; }
+  .chip .ck { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; }
+  .chip[aria-pressed="true"] .ck { background: var(--accent); border-color: var(--accent); }
+  .chip[aria-pressed="true"] .ck::after { content: ""; width: 7px; height: 4px; border: 2px solid var(--accent-ink); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .chip .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; text-decoration: none; }
+  .empty-chips { font-size: 13px; color: var(--muted); }
+
+  /* Charts */
+  .charts { display: grid; gap: 16px; margin-bottom: 16px; }
+  @media (min-width: 960px) { .charts { grid-template-columns: 3fr 2fr; } }
+  .chart-card { padding: 16px 18px 18px; min-width: 0; }
+  .chart-head { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .chart-head p { font-size: 12px; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  .tl { display: flex; align-items: flex-end; gap: 6px; height: 200px; padding-top: 18px; border-bottom: 1px solid var(--border); position: relative; }
+  .tl-col { flex: 1 1 0; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; cursor: default; }
+  .tl-col:hover .tl-stack, .tl-col:focus .tl-stack { filter: brightness(1.1); }
+  .tl-col:focus { outline: none; }
+  .tl-col:focus-visible .tl-stack { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tl-stack { width: min(100%, 28px); display: flex; flex-direction: column-reverse; gap: 2px; }
+  .tl-stack div:last-child { border-radius: 4px 4px 0 0; }
+  .tl-val { font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .tl-col.now::before { content: ""; position: absolute; inset: 0 -3px; background: var(--accent-soft); border-radius: 6px 6px 0 0; z-index: -1; }
+  .tl-labels { display: flex; gap: 6px; margin-top: 6px; }
+  .tl-labels div { flex: 1 1 0; min-width: 0; text-align: center; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+  .tl-labels div.now { color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .tl-labels div:nth-child(even) { visibility: hidden; } }
+
+  .bars { display: grid; gap: 8px; }
+  .bar-row { display: grid; grid-template-columns: minmax(80px, 34%) 1fr; gap: 10px; align-items: center; font-size: 13px; }
+  .bar-row .name { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .bar-fill { display: flex; gap: 2px; height: 14px; min-width: 2px; cursor: default; }
+  .bar-fill div:last-child { border-radius: 0 4px 4px 0; }
+  .bar-fill:hover, .bar-fill:focus { filter: brightness(1.1); outline: none; }
+  .bar-fill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .bar-n { font-size: 12px; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .chart-empty { height: 200px; display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; border: 1px dashed var(--border); border-radius: 8px; }
+
+  .tip {
+    position: fixed; z-index: 50; pointer-events: none; display: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.2); padding: 8px 10px; font-size: 12px; min-width: 150px;
+  }
+  .tip .t { color: var(--text-2); font-weight: 600; margin-bottom: 4px; }
+  .tip .r { display: flex; align-items: center; gap: 8px; }
+  .tip .r b { font-variant-numeric: tabular-nums; min-width: 18px; }
+  .tip .r i { width: 10px; height: 2px; display: inline-block; }
+  .tip .r span { color: var(--text-2); }
+
+  /* List */
+  .list-card { padding: 0; overflow: hidden; }
+  .list-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .list-head .count { color: var(--muted); font-size: 13px; font-weight: 400; margin-left: 6px; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 920px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
+  th button { background: none; border: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+  th button:hover { color: var(--text); }
+  th .arr { opacity: .3; }
+  th.sorted .arr { opacity: 1; color: var(--accent); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.name-cell { min-width: 240px; }
+  td.name-cell b { font-weight: 600; display: block; }
+  td.name-cell small { color: var(--muted); display: block; margin-top: 2px; font-size: 12px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); margin: 0 4px 4px 0; white-space: nowrap; }
+  .tag.strong { background: var(--accent-soft); border-color: transparent; color: var(--text); }
+  .date-cell { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .date-cell small { display: block; color: var(--muted); font-size: 12px; }
+  .risk { color: var(--st-risk); font-weight: 600; font-size: 12px; display: inline-flex; gap: 4px; align-items: center; }
+  .row-actions { display: flex; gap: 2px; justify-content: flex-end; }
+  .row-actions .btn { height: 30px; padding: 0 8px; font-size: 12px; }
+
+  .empty { padding: 56px 24px; text-align: center; }
+  .empty .ill { width: 56px; height: 56px; border-radius: 14px; background: var(--accent-soft); display: grid; place-items: center; margin: 0 auto 14px; color: var(--accent); }
+  .empty h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .empty p { color: var(--text-2); max-width: 440px; margin: 0 auto 18px; }
+
+  /* Dialog */
+  dialog {
+    border: 1px solid var(--border); border-radius: 14px; padding: 0;
+    background: var(--surface); color: var(--text);
+    width: min(760px, calc(100vw - 24px)); max-height: calc(100vh - 32px);
+    margin: auto;
+  }
+  dialog::backdrop { background: rgba(5, 10, 30, .55); }
+  .dlg-head, .dlg-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; }
+  .dlg-head { border-bottom: 1px solid var(--border); }
+  .dlg-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 20px; }
+  .dlg-foot { border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--surface); }
+  .dlg-body { padding: 18px 20px; display: grid; gap: 14px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .dlg-body { grid-template-columns: 1fr 1fr; } .span2 { grid-column: span 2; } }
+  .field label, .field .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
+  .field .hint { font-weight: 400; color: var(--muted); }
+  .field input[type=text], .field input[type=date], .field select, .field textarea {
+    width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-2); padding: 0 10px;
+  }
+  .field textarea { height: auto; min-height: 70px; padding: 8px 10px; resize: vertical; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg label {
+    display: inline-flex; align-items: center; gap: 6px; margin: 0;
+    height: 34px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface-2);
+    font-size: 13px; font-weight: 500; color: var(--text);
+  }
+  .seg input { accent-color: var(--accent); }
+  .seg label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .status-help { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .err { color: var(--st-risk); font-size: 12px; margin-top: 4px; display: none; }
+  .field.invalid .err { display: block; }
+  .field.invalid input { border-color: var(--st-risk); }
+
+  /* Year tabs */
+  .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .year-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px 12px; margin-bottom: -1px; cursor: pointer;
+    background: none; border: 0; border-bottom: 2px solid transparent;
+    font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600; color: var(--muted);
+    white-space: nowrap;
+  }
+  .year-tab:hover { color: var(--text); }
+  .year-tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .year-tab .n {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+    min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); text-align: center;
+  }
+  .year-tab[aria-selected="true"] .n { background: var(--accent-soft); color: var(--text); }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; opacity: 0; transition: .2s; z-index: 60; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  footer.note { margin-top: 20px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow">Forward-looking</div>
+      <h1>Forward Looking Campaigns</h1>
+      <p class="sub">Upcoming and live campaigns by LoB, segment and motion.</p>
+    </div>
+    <div class="actions">
+      <div class="menu" id="dataMenu">
+        <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Data
+        </button>
+        <div class="menu-list" role="menu">
+          <button role="menuitem" data-act="export-json" class="dl-only">Export backup (.json)</button>
+          <button role="menuitem" data-act="export-csv" class="dl-only">Export view as CSV</button>
+          <button role="menuitem" data-act="import" class="write-only">Import backup (.json)…</button>
+          <hr class="write-only">
+          <button role="menuitem" data-act="clear" class="write-only" style="color:var(--st-risk)">Clear all campaigns…</button>
+        </div>
+      </div>
+      <button class="btn primary write-only" id="addBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+        Add campaign
+      </button>
+    </div>
+  </header>
+
+  <nav class="year-tabs" id="yearTabs" role="tablist" aria-label="Fiscal year"></nav>
+
+  <!-- KPIs -->
+  <section class="kpis" aria-label="Summary">
+    <div class="card kpi hero">
+      <div class="label">Upcoming campaigns</div>
+      <div class="value" id="kUpcoming">0</div>
+      <div class="note" id="kUpcomingNote">0 campaigns · 0 EiaB</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Net New</div>
+      <div class="value" id="kNew">0</div>
+      <div class="note">New builds in view</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Refreshed</div>
+      <div class="value" id="kRefresh">0</div>
+      <div class="note">Refreshes in view</div>
+    </div>
+    <div class="card kpi">
+      <div class="label"><span class="dot" style="background:var(--st-live)"></span>Live</div>
+      <div class="value" id="kLive">0</div>
+      <div class="note">Launched campaigns</div>
+    </div>
+    <div class="card kpi">
+      <div class="label"><span class="dot" style="background:var(--st-risk)"></span>Past target date</div>
+      <div class="value" id="kRisk">0</div>
+      <div class="note">Not live, date has passed</div>
+    </div>
+    <div class="card kpi">
+      <div class="label">Next launch</div>
+      <div class="value small" id="kNext">—</div>
+      <div class="note" id="kNextNote">Nothing scheduled</div>
+    </div>
+  </section>
+
+  <!-- Filters -->
+  <section class="card filters" id="filters" aria-label="Filters">
+    <div class="filter-head">
+      <input class="search" id="search" type="search" placeholder="Search name, description, tags…" aria-label="Search campaigns">
+      <select class="ctl" id="windowSel" aria-label="Launch window">
+        <option value="all">All launch dates</option>
+        <option value="30">Next 30 days</option>
+        <option value="90">Next 90 days</option>
+        <option value="180">Next 6 months</option>
+        <option value="quarter">This quarter</option>
+        <option value="overdue">Past target date</option>
+        <option value="nodate">No date set</option>
+      </select>
+      <span class="active-count" id="activeCount"></span>
+      <button class="btn ghost" id="resetFilters">Reset</button>
+      <button class="btn ghost" id="toggleFilters" aria-expanded="true">Hide toggles</button>
+    </div>
+    <div class="filter-groups" id="filterGroups"></div>
+  </section>
+
+  <!-- Charts -->
+  <section class="charts">
+    <div class="card chart-card">
+      <div class="chart-head">
+        <div>
+          <h2>Launch timeline</h2>
+          <p>Campaigns per month by estimated launch date</p>
+        </div>
+        <div class="legend" id="legend1"></div>
+      </div>
+      <div id="timeline"></div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-head">
+        <div>
+          <h2>By line of business</h2>
+          <p>Campaigns in view, split by status</p>
+        </div>
+      </div>
+      <div id="byLob"></div>
+    </div>
+  </section>
+
+  <!-- List -->
+  <section class="card list-card">
+    <div class="list-head">
+      <h2><span id="listTitle">Campaigns</span><span class="count" id="listCount"></span></h2>
+      <select class="ctl" id="groupSel" aria-label="Group list by">
+        <option value="none">No grouping</option>
+        <option value="lob">Group by LoB</option>
+        <option value="status">Group by status</option>
+        <option value="quarter">Group by launch quarter</option>
+      </select>
+    </div>
+    <div id="listBody"></div>
+  </section>
+
+  <footer class="note" id="storageNote"></footer>
+</div>
+
+<!-- Add / edit dialog -->
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <form id="form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h2 id="dlgTitle">Add campaign</h2>
+      <button type="button" class="btn ghost icon-btn" data-close aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+    <div class="dlg-body">
+      <div class="field span2" id="fName">
+        <label for="name">Campaign name</label>
+        <input type="text" id="name" name="name" autocomplete="off" placeholder="e.g. Myth-busting for Supply Chain Management">
+        <div class="err">Give the campaign a name.</div>
+      </div>
+      <div class="field span2">
+        <label for="description">Description <span class="hint">(optional)</span></label>
+        <textarea id="description" name="description" placeholder="One-line positioning or goal"></textarea>
+      </div>
+
+      <div class="field" id="fLob">
+        <label for="lob">Line of business</label>
+        <input type="text" id="lob" name="lob" list="lobList" autocomplete="off" placeholder="Pick or type a new one">
+        <datalist id="lobList"></datalist>
+        <div class="err">Choose or enter a LoB.</div>
+      </div>
+      <div class="field">
+        <label for="type">Type</label>
+        <input type="text" id="type" name="type" list="typeList" autocomplete="off">
+        <datalist id="typeList"></datalist>
+      </div>
+
+      <div class="field">
+        <span class="lbl">New or refresh</span>
+        <div class="seg">
+          <label><input type="radio" name="newRefresh" value="New" checked> New</label>
+          <label><input type="radio" name="newRefresh" value="Refresh"> Refresh</label>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Segment</span>
+        <div class="seg" id="segBox"></div>
+      </div>
+
+      <div class="field">
+        <span class="lbl">Motion</span>
+        <div class="seg" id="motionBox"></div>
+      </div>
+      <div class="field">
+        <span class="lbl">Status</span>
+        <div class="seg" id="statusBox"></div>
+        <div class="status-help" id="statusHelp"></div>
+      </div>
+
+      <div class="field">
+        <label for="year">Fiscal year</label>
+        <select id="year" name="year"></select>
+      </div>
+      <div class="field"></div>
+
+      <div class="field" id="fDate">
+        <label for="launchDate" id="dateLabel">Estimated launch date</label>
+        <input type="date" id="launchDate" name="launchDate">
+        <div class="err">Add a launch date (or a target window).</div>
+      </div>
+      <div class="field">
+        <label for="window">Target window <span class="hint">(if no exact date)</span></label>
+        <select id="window" name="window"></select>
+      </div>
+
+      <div class="field">
+        <label for="languages">Language versions <span class="hint">(comma-separated)</span></label>
+        <input type="text" id="languages" name="languages" placeholder="EN, DE, FR, JA">
+      </div>
+      <div class="field">
+        <label for="owner">Owner <span class="hint">(optional)</span></label>
+        <input type="text" id="owner" name="owner" autocomplete="off">
+      </div>
+
+      <div class="field span2">
+        <label for="tags">Other tags <span class="hint">(comma-separated, e.g. Partner, AI, Mythbusting, Cross-sell)</span></label>
+        <input type="text" id="tags" name="tags" list="tagList" autocomplete="off">
+        <datalist id="tagList"></datalist>
+      </div>
+      <div class="field span2">
+        <label for="notes">Notes <span class="hint">(optional)</span></label>
+        <textarea id="notes" name="notes"></textarea>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn danger write-only" id="deleteBtn">Delete</button>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary write-only" id="saveBtn">Save campaign</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<div class="tip" id="tip" role="tooltip"></div>
+<dialog id="ask" aria-labelledby="askTitle">
+  <div class="dlg-head"><h2 id="askTitle"></h2></div>
+  <p class="ask-body" id="askMsg"></p>
+  <div class="dlg-foot" id="askBtns"></div>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Config ----------
+  const STORE_KEY = 'campaignPipeline.v1';
+  const PREF_KEY = 'campaignPipeline.prefs.v1';
+  const DEFAULT_LOBS = [
+    'AI/Joule', 'Autonomous Enterprise', 'BTP/BDC', 'Cloud ERP Private', 'Cloud ERP Public',
+    'CX', 'F&SM', 'HCM', 'SAP Business One', 'SCM', 'Sovereign Cloud', 'Sustainability'
+  ];
+  const TYPES = ['Campaign', 'Event-in-a-box', 'Activation Kit'];
+  const SEGMENTS = ['Corporate', 'Enterprise'];
+  const MOTIONS = ['Net New', 'Install Base'];
+  const NEW_REFRESH = ['New', 'Refresh'];
+  const STATUSES = [
+    { id: 'Planning',    color: 'var(--st-planning)', help: 'Scoped but not yet in build. Add an estimated date or window.' },
+    { id: 'In Progress', color: 'var(--st-progress)', help: 'Being built. Add the estimated launch date.' },
+    { id: 'Live',        color: 'var(--st-live)',     help: 'Launched. The date is the actual launch date.' }
+  ];
+  const WINDOWS = ['', 'Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2'];
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const parseDate = s => { if (!s) return null; const [y, m, d] = String(s).split('-').map(Number); return y ? new Date(y, m - 1, d || 1) : null; };
+
+  // ---------- Storage (guarded) ----------
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } }
+  };
+
+  let campaigns = [];
+  const BASE_YEARS = [2026, 2027];
+  const yearOfDate = s => { const d = parseDate(s); return d ? d.getFullYear() : null; };
+  const prefs = Object.assign({ lobs: DEFAULT_LOBS.slice(), off: {}, group: 'none', sort: { key: 'date', dir: 1 }, collapsed: false }, store.get(PREF_KEY) || {});
+  // Campaigns live in the artifact's shared database (collection "campaigns", one doc per campaign).
+  // If the database isn't available in this view, fall back to this browser's storage.
+  let col = null, canWrite = true, downloads = null;
+  const saveLocal = () => { if (!col) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
+  const setNote = ok => {
+    $('#storageNote').textContent = col
+      ? (canWrite ? 'Campaigns are saved to this dashboard and shared with everyone who opens it.' : 'You have view-only access to this dashboard.')
+      : ok ? 'Shared storage isn’t available in this view, so campaigns are saved in this browser only.'
+           : 'Storage is unavailable here, so changes last only until you close this tab.';
+  };
+  const plain = c => JSON.parse(JSON.stringify(c));
+  async function writeOp(fn) {
+    try { await fn(); return true; }
+    catch (e) {
+      if (e && e.code === 'invalid_argument' && !e.message?.includes('256')) { canWrite = false; applyAccess(); toast('You have view-only access, so changes weren’t saved'); }
+      else if (e && e.code === 'quota_exceeded') toast('The dashboard’s storage is full. Delete some campaigns and try again.');
+      else toast('Couldn’t save that change. Check your connection and try again.');
+      return false;
+    }
+  }
+  const putCampaign = c => col ? writeOp(() => col.doc(c.id).set(plain(c))) : (saveLocal(), Promise.resolve(true));
+  const removeCampaign = id => col ? writeOp(() => col.doc(id).delete()) : (saveLocal(), Promise.resolve(true));
+  function applyAccess() {
+    document.body.classList.toggle('readonly', !canWrite);
+    setNote(true);
+    render();
+  }
+
+  // In-page confirmation (native confirm() is blocked in the viewer)
+  function ask(title, msg, buttons) {
+    const d = $('#ask');
+    $('#askTitle').textContent = title;
+    $('#askMsg').textContent = msg;
+    return new Promise(resolve => {
+      const box = $('#askBtns');
+      box.replaceChildren(...buttons.map((b, i) => el('button', {
+        type: 'button', class: 'btn' + (b.kind ? ' ' + b.kind : ''), style: i === 0 ? 'margin-right:auto' : '',
+        onclick: () => { d.close(); resolve(b.value); }
+      }, b.label)));
+      d.onclose = () => resolve(null);
+      d.showModal();
+    });
+  }
+  const savePrefs = () => store.set(PREF_KEY, prefs);
+
+  // ---------- Helpers ----------
+  const $ = (s, el = document) => el.querySelector(s);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === 'class') n.className = v;
+      else if (k === 'style') n.style.cssText = v;
+      else if (k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid != null && kid !== false) n.append(kid.nodeType ? kid : String(kid));
+    return n;
+  };
+  const uid = () => 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const splitList = s => [...new Set(String(s || '').split(',').map(x => x.trim()).filter(Boolean))];
+  const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+  const fmtDate = s => { const d = parseDate(s); return d ? `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}` : ''; };
+  const daysUntil = s => { const d = parseDate(s); return d ? Math.round((d - today()) / 864e5) : null; };
+  const statusOf = id => STATUSES.find(s => s.id === id) || STATUSES[0];
+  const isEiab = c => /event/i.test(c.type || '');
+  const isOverdue = c => c.status !== 'Live' && c.launchDate && daysUntil(c.launchDate) < 0;
+  const quarterOf = c => {
+    const d = parseDate(c.launchDate);
+    if (d) return `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`;
+    return c.window ? c.window : 'No date';
+  };
+  const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); };
+
+  function normalize(c) {
+    const arr = v => Array.isArray(v) ? v.map(String).filter(Boolean) : splitList(v);
+    return {
+      id: c.id || uid(),
+      name: String(c.name || '').trim(),
+      description: String(c.description || ''),
+      lob: String(c.lob || '').trim() || 'Unassigned',
+      type: String(c.type || 'Campaign').trim() || 'Campaign',
+      newRefresh: NEW_REFRESH.includes(c.newRefresh) ? c.newRefresh : 'New',
+      segment: arr(c.segment).filter(x => SEGMENTS.includes(x)),
+      motion: arr(c.motion).filter(x => MOTIONS.includes(x)),
+      status: STATUSES.some(s => s.id === c.status) ? c.status : 'Planning',
+      launchDate: /^\d{4}-\d{2}-\d{2}$/.test(c.launchDate || '') ? c.launchDate : '',
+      year: yearOfDate(c.launchDate) || (Number.isInteger(+c.year) && +c.year > 2000 ? +c.year : new Date().getFullYear()),
+      window: WINDOWS.includes(c.window) ? c.window : '',
+      languages: arr(c.languages),
+      tags: arr(c.tags),
+      owner: String(c.owner || ''),
+      notes: String(c.notes || ''),
+      createdAt: c.createdAt || new Date().toISOString(),
+      updatedAt: c.updatedAt || new Date().toISOString()
+    };
+  }
+
+  // ---------- Filters ----------
+  // Each group: values come from defaults ∪ what's in the data. Toggled-off values live in prefs.off[group].
+  const GROUPS = [
+    { key: 'lob',        label: 'Line of business', values: () => uniq([...prefs.lobs, ...campaigns.map(c => c.lob)]), of: c => [c.lob] },
+    { key: 'segment',    label: 'Segment',          values: () => SEGMENTS, of: c => c.segment, emptyLabel: 'Unspecified' },
+    { key: 'motion',     label: 'Motion',           values: () => MOTIONS,  of: c => c.motion,  emptyLabel: 'Unspecified' },
+    { key: 'newRefresh', label: 'New / Refresh',    values: () => NEW_REFRESH, of: c => [c.newRefresh] },
+    { key: 'type',       label: 'Type',             values: () => uniq([...TYPES, ...campaigns.map(c => c.type)]), of: c => [c.type] },
+    { key: 'status',     label: 'Status',           values: () => STATUSES.map(s => s.id), of: c => [c.status] },
+    { key: 'tags',       label: 'Other tags',       values: () => uniq(campaigns.flatMap(c => c.tags)).sort((a, b) => a.localeCompare(b)), of: c => c.tags, emptyLabel: 'Untagged' }
+  ];
+  function uniq(a) { return [...new Set(a.filter(Boolean))]; }
+  const offSet = key => new Set(prefs.off[key] || []);
+
+  // A campaign passes a group if any of its values (or its "empty" bucket) is toggled on.
+  function passesGroup(c, g, off) {
+    const vals = g.of(c);
+    if (!vals.length) return g.emptyLabel ? !off.has(g.emptyLabel) : true;
+    return vals.some(v => !off.has(v));
+  }
+  function passesWindow(c, w) {
+    if (w === 'all') return true;
+    if (w === 'nodate') return !c.launchDate;
+    if (w === 'overdue') return isOverdue(c);
+    const d = parseDate(c.launchDate);
+    if (!d) return false;
+    const t = today();
+    if (w === 'quarter') return d.getFullYear() === t.getFullYear() && Math.floor(d.getMonth() / 3) === Math.floor(t.getMonth() / 3);
+    if (w === 'year') return d.getFullYear() === t.getFullYear();
+    const n = daysUntil(c.launchDate);
+    return n >= 0 && n <= Number(w);
+  }
+  // ---------- Year tabs ----------
+  const allYears = () => [...new Set([...BASE_YEARS, prefs.year, ...campaigns.map(c => c.year)].filter(Number.isInteger))].sort((a, b) => a - b);
+  const inYear = () => campaigns.filter(c => c.year === prefs.year);
+  function renderTabs() {
+    const years = allYears();
+    $('#yearTabs').replaceChildren(...years.map(y => el('button', {
+      type: 'button', role: 'tab', class: 'year-tab', id: 'tab' + y,
+      'aria-selected': String(y === prefs.year), tabindex: y === prefs.year ? '0' : '-1',
+      onclick: () => setYear(y),
+      onkeydown: e => {
+        const i = years.indexOf(y), j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+        if (years[j]) { setYear(years[j]); $('#tab' + years[j]).focus(); }
+      }
+    }, String(y), el('span', { class: 'n' }, campaigns.filter(c => c.year === y).length))));
+  }
+  function setYear(y) {
+    prefs.year = y; savePrefs();
+    try { history.replaceState(null, '', '#y' + y); } catch {}
+    render();
+  }
+
+  function filtered({ except } = {}) {
+    const q = $('#search').value.trim().toLowerCase();
+    const w = $('#windowSel').value;
+    const offs = Object.fromEntries(GROUPS.map(g => [g.key, offSet(g.key)]));
+    return campaigns.filter(c => {
+      if (c.year !== prefs.year) return false;
+      for (const g of GROUPS) if (g.key !== except && !passesGroup(c, g, offs[g.key])) return false;
+      if (!passesWindow(c, w)) return false;
+      if (q) {
+        const hay = [c.name, c.description, c.lob, c.type, c.owner, c.notes, ...c.tags, ...c.languages].join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderFilters() {
+    const box = $('#filterGroups');
+    box.replaceChildren();
+    let offTotal = 0;
+    for (const g of GROUPS) {
+      const off = offSet(g.key);
+      const pool = filtered({ except: g.key });
+      let values = g.values();
+      const hasEmpty = g.emptyLabel && campaigns.some(c => !g.of(c).length);
+      if (hasEmpty) values = [...values, g.emptyLabel];
+      // drop stale "off" entries that no longer exist
+      prefs.off[g.key] = [...off].filter(v => values.includes(v));
+      offTotal += prefs.off[g.key].length;
+
+      const chips = el('div', { class: 'chips' });
+      if (!values.length) chips.append(el('span', { class: 'empty-chips' }, g.key === 'tags' ? 'Tags you add to campaigns will show up here.' : 'None yet'));
+      for (const v of values) {
+        const on = !off.has(v);
+        const n = pool.filter(c => v === g.emptyLabel ? !g.of(c).length : g.of(c).includes(v)).length;
+        const dot = g.key === 'status' ? el('span', { class: 'dot', style: `background:${statusOf(v).color}` }) : null;
+        chips.append(el('button', {
+          type: 'button', class: 'chip', 'aria-pressed': String(on),
+          title: on ? `Hide ${v}` : `Show ${v}`,
+          onclick: () => { toggle(g.key, v); }
+        }, el('span', { class: 'ck', 'aria-hidden': 'true' }), dot, v, el('span', { class: 'n' }, n)));
+      }
+      box.append(el('div', {},
+        el('div', { class: 'fg-title' },
+          el('span', {}, g.label),
+          values.length ? el('button', { type: 'button', onclick: () => setAll(g.key, values, true) }, 'All') : null,
+          values.length ? el('button', { type: 'button', onclick: () => setAll(g.key, values, false) }, 'None') : null),
+        chips));
+    }
+    const w = $('#windowSel').value !== 'all' ? 1 : 0;
+    const q = $('#search').value.trim() ? 1 : 0;
+    $('#activeCount').textContent = (offTotal + w + q) ? `${offTotal} toggled off${w ? ' · date window' : ''}${q ? ' · search' : ''}` : '';
+  }
+  function toggle(key, v) {
+    const s = offSet(key);
+    s.has(v) ? s.delete(v) : s.add(v);
+    prefs.off[key] = [...s]; savePrefs(); render();
+  }
+  function setAll(key, values, on) { prefs.off[key] = on ? [] : values.slice(); savePrefs(); render(); }
+
+  // ---------- KPIs ----------
+  function renderKpis(list) {
+    const upcoming = list.filter(c => c.status !== 'Live');
+    const eiab = upcoming.filter(isEiab).length;
+    $('#kUpcoming').textContent = upcoming.length;
+    $('#kUpcomingNote').textContent = `${upcoming.length - eiab} campaign${upcoming.length - eiab === 1 ? '' : 's'} · ${eiab} EiaB`;
+    $('#kNew').textContent = list.filter(c => c.newRefresh === 'New').length;
+    $('#kRefresh').textContent = list.filter(c => c.newRefresh === 'Refresh').length;
+    $('#kLive').textContent = list.filter(c => c.status === 'Live').length;
+    $('#kRisk').textContent = list.filter(isOverdue).length;
+    const next = upcoming.filter(c => c.launchDate && daysUntil(c.launchDate) >= 0)
+      .sort((a, b) => a.launchDate.localeCompare(b.launchDate))[0];
+    if (next) {
+      const n = daysUntil(next.launchDate);
+      $('#kNext').textContent = next.name;
+      $('#kNext').title = next.name;
+      $('#kNextNote').textContent = `${fmtDate(next.launchDate)} · ${n === 0 ? 'today' : `in ${n} day${n === 1 ? '' : 's'}`}`;
+    } else {
+      $('#kNext').textContent = '—'; $('#kNext').title = '';
+      $('#kNextNote').textContent = 'Nothing scheduled';
+    }
+  }
+
+  // ---------- Tooltip ----------
+  const tip = $('#tip');
+  function showTip(evt, title, rows) {
+    tip.replaceChildren(el('div', { class: 't' }, title),
+      ...rows.map(r => el('div', { class: 'r' }, el('i', { style: `background:${r.color}` }), el('b', {}, r.value), el('span', {}, r.label))));
+    tip.style.display = 'block';
+    let x, y;
+    if (evt.type === 'focus') { const b = evt.currentTarget.getBoundingClientRect(); x = b.left + b.width / 2; y = b.top; }
+    else { x = evt.clientX; y = evt.clientY; }
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x + 12)) + 'px';
+    tip.style.top = Math.max(8, y - h - 12) + 'px';
+  }
+  const hideTip = () => { tip.style.display = 'none'; };
+  function attachTip(node, title, rows) {
+    node.tabIndex = 0;
+    node.setAttribute('aria-label', `${title}: ${rows.map(r => `${r.value} ${r.label}`).join(', ')}`);
+    node.addEventListener('pointermove', e => showTip(e, title, rows));
+    node.addEventListener('focus', e => showTip(e, title, rows));
+    node.addEventListener('pointerleave', hideTip);
+    node.addEventListener('blur', hideTip);
+  }
+  const statusRows = items => STATUSES.map(s => ({ color: s.color, label: s.id, value: items.filter(c => c.status === s.id).length }));
+
+  // ---------- Charts ----------
+  function renderLegend() {
+    $('#legend1').replaceChildren(...STATUSES.map(s => el('span', {}, el('i', { style: `background:${s.color}` }), s.id)));
+  }
+
+  function renderTimeline(list) {
+    const host = $('#timeline');
+    const t = today();
+    // Jan–Dec of the selected year, plus a bucket for campaigns with only a target window.
+    const y = prefs.year;
+    const buckets = MONTHS.map((m, i) => ({ label: m, full: `${m} ${y}`, now: t.getFullYear() === y && t.getMonth() === i, items: [] }));
+    const nodate = { label: 'No date', full: `No date set (${y})`, items: [] };
+    for (const c of list) {
+      const d = parseDate(c.launchDate);
+      if (d && d.getFullYear() === y) buckets[d.getMonth()].items.push(c);
+      else nodate.items.push(c);
+    }
+    const cols = [...buckets, ...(nodate.items.length ? [nodate] : [])];
+
+    if (!list.length) {
+      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Add a ${prefs.year} campaign to see it on the timeline.`));
+      return;
+    }
+    const max = Math.max(1, ...cols.map(b => b.items.length));
+    const plot = el('div', { class: 'tl' });
+    const labels = el('div', { class: 'tl-labels', 'aria-hidden': 'true' });
+    for (const b of cols) {
+      const stack = el('div', { class: 'tl-stack' });
+      for (const s of STATUSES) {
+        const n = b.items.filter(c => c.status === s.id).length;
+        if (n) stack.append(el('div', { style: `height:${(n / max) * 170 - 2}px;background:${s.color}` }));
+      }
+      const col = el('div', { class: 'tl-col' + (b.now ? ' now' : '') },
+        b.items.length ? el('div', { class: 'tl-val' }, b.items.length) : null, stack);
+      attachTip(col, `${b.full} · ${b.items.length} total`, statusRows(b.items));
+      plot.append(col);
+      labels.append(el('div', { class: b.now ? 'now' : '' }, b.label));
+    }
+    host.replaceChildren(plot, labels);
+  }
+
+  function renderByLob(list) {
+    const host = $('#byLob');
+    if (!list.length) {
+      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Counts per LoB appear once ${prefs.year} campaigns are added.`));
+      return;
+    }
+    const groups = {};
+    for (const c of list) (groups[c.lob] ||= []).push(c);
+    const rows = Object.entries(groups).sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+    const max = Math.max(...rows.map(r => r[1].length));
+    const wrap = el('div', { class: 'bars' });
+    for (const [lob, items] of rows) {
+      const fill = el('div', { class: 'bar-fill', style: `width:calc((100% - 32px) * ${items.length / max})` });
+      for (const s of STATUSES) {
+        const n = items.filter(c => c.status === s.id).length;
+        if (n) fill.append(el('div', { style: `flex:${n} 1 0;background:${s.color}` }));
+      }
+      attachTip(fill, `${lob} · ${items.length} total`, statusRows(items));
+      wrap.append(el('div', { class: 'bar-row' },
+        el('div', { class: 'name', title: lob }, lob),
+        el('div', { class: 'bar-track' }, fill, el('span', { class: 'bar-n' }, items.length))));
+    }
+    host.replaceChildren(wrap);
+  }
+
+  // ---------- List ----------
+  const COLS = [
+    { key: 'name',   label: 'Campaign' },
+    { key: 'lob',    label: 'LoB' },
+    { key: 'status', label: 'Status' },
+    { key: 'date',   label: 'Launch' },
+    { key: 'newRefresh', label: 'New / Refresh' },
+    { key: 'type',   label: 'Type' },
+    { key: 'seg',    label: 'Segment · Motion', nosort: true },
+    { key: 'tags',   label: 'Tags · Languages', nosort: true },
+    { key: 'act',    label: '', nosort: true }
+  ];
+  function sortVal(c, key) {
+    if (key === 'date') return c.launchDate || (c.window ? '9998-' + c.window : '9999');
+    if (key === 'status') return STATUSES.findIndex(s => s.id === c.status);
+    return String(c[key] || '').toLowerCase();
+  }
+  function sorted(list) {
+    const { key, dir } = prefs.sort;
+    return list.slice().sort((a, b) => {
+      const x = sortVal(a, key), y = sortVal(b, key);
+      return (x < y ? -1 : x > y ? 1 : 0) * dir || a.name.localeCompare(b.name);
+    });
+  }
+
+  function renderList(list) {
+    const host = $('#listBody');
+    const yearTotal = inYear().length;
+    $('#listCount').textContent = yearTotal ? `${list.length} of ${yearTotal}` : '';
+    if (!yearTotal) {
+      host.replaceChildren(el('div', { class: 'empty' },
+        el('div', { class: 'ill' }, svgIcon('M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z')),
+        el('h3', {}, `No ${prefs.year} campaigns yet`),
+        el('p', {}, 'Add the campaigns coming down the pipeline — whether they’re live or still in progress — with an estimated launch date, and tag them by LoB, segment and motion.'),
+        el('button', { class: 'btn primary write-only', type: 'button', onclick: () => openForm() }, `Add a ${prefs.year} campaign`)));
+      return;
+    }
+    if (!list.length) {
+      host.replaceChildren(el('div', { class: 'empty' },
+        el('h3', {}, 'Nothing matches'),
+        el('p', {}, 'Every campaign is hidden by the current toggles, date window or search.'),
+        el('button', { class: 'btn', type: 'button', onclick: resetFilters }, 'Reset filters')));
+      return;
+    }
+
+    const thead = el('thead', {}, el('tr', {}, COLS.map(col => {
+      if (col.nosort) return el('th', {}, col.label);
+      const on = prefs.sort.key === col.key;
+      return el('th', { class: on ? 'sorted' : '', 'aria-sort': on ? (prefs.sort.dir > 0 ? 'ascending' : 'descending') : 'none' },
+        el('button', { type: 'button', onclick: () => { prefs.sort = { key: col.key, dir: on ? -prefs.sort.dir : 1 }; savePrefs(); render(); } },
+          col.label, el('span', { class: 'arr', 'aria-hidden': 'true' }, on && prefs.sort.dir < 0 ? '↓' : '↑')));
+    })));
+    const tbody = el('tbody');
+    const rows = sorted(list);
+    const g = prefs.group;
+    if (g === 'none') rows.forEach(c => tbody.append(row(c)));
+    else {
+      const keyOf = c => g === 'lob' ? c.lob : g === 'status' ? c.status : quarterOf(c);
+      const order = [];
+      const map = {};
+      for (const c of rows) { const k = keyOf(c); if (!map[k]) { map[k] = []; order.push(k); } map[k].push(c); }
+      if (g === 'status') order.sort((a, b) => STATUSES.findIndex(s => s.id === a) - STATUSES.findIndex(s => s.id === b));
+      else if (g === 'quarter') order.sort((a, b) => qSort(a).localeCompare(qSort(b)));
+      else order.sort((a, b) => a.localeCompare(b));
+      for (const k of order) {
+        tbody.append(el('tr', { style: 'cursor:default' }, el('td', { colspan: COLS.length, style: 'background:var(--surface-2);font-weight:600;font-size:13px' },
+          g === 'status' ? el('span', { class: 'dot', style: `background:${statusOf(k).color};margin-right:8px` }) : null,
+          k, el('span', { style: 'color:var(--muted);font-weight:400;margin-left:8px' }, `${map[k].length}`))));
+        map[k].forEach(c => tbody.append(row(c)));
+      }
+    }
+    host.replaceChildren(el('div', { class: 'table-scroll' }, el('table', {}, thead, tbody)));
+  }
+  const qSort = k => { const m = /^Q(\d) (\d{4})$/.exec(k); return m ? `${m[2]}-${m[1]}` : k === 'No date' ? 'zzzz' : 'zzz-' + k; };
+
+  function row(c) {
+    const s = statusOf(c.status);
+    const n = daysUntil(c.launchDate);
+    let dateSub = '';
+    if (c.launchDate) {
+      if (c.status === 'Live') dateSub = 'Launched';
+      else if (n === 0) dateSub = 'Today';
+      else if (n > 0) dateSub = `in ${n} day${n === 1 ? '' : 's'}`;
+    }
+    const tr = el('tr', { tabindex: '0', onclick: e => { if (!e.target.closest('button')) openForm(c); }, onkeydown: e => { if (e.key === 'Enter' && e.target === tr) openForm(c); } },
+      el('td', { class: 'name-cell' }, el('b', {}, c.name), c.description ? el('small', {}, c.description) : null),
+      el('td', {}, c.lob),
+      el('td', {}, el('span', { class: 'pill' }, el('span', { class: 'dot', style: `background:${s.color}` }), c.status)),
+      el('td', { class: 'date-cell' },
+        c.launchDate ? fmtDate(c.launchDate) : (c.window ? `Target ${c.window}` : el('span', { style: 'color:var(--muted)' }, 'Not set')),
+        isOverdue(c) ? el('small', {}, el('span', { class: 'risk' }, '⚠ Past target date')) : dateSub ? el('small', {}, dateSub) : null,
+        c.launchDate && c.window ? el('small', {}, `Window ${c.window}`) : null),
+      el('td', {}, c.newRefresh),
+      el('td', {}, c.type),
+      el('td', {}, [...c.segment, ...c.motion].map(x => el('span', { class: 'tag strong' }, x)), (!c.segment.length && !c.motion.length) ? el('span', { style: 'color:var(--muted)' }, '—') : null),
+      el('td', {}, c.tags.map(x => el('span', { class: 'tag' }, x)), c.languages.length ? el('span', { class: 'tag', title: 'Language versions' }, c.languages.join(', ')) : null),
+      el('td', {}, el('div', { class: 'row-actions' },
+        c.status !== 'Live' && canWrite ? el('button', { class: 'btn ghost', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, 'Mark live') : null,
+        el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(c) }, canWrite ? 'Edit' : 'View')))
+    );
+    return tr;
+  }
+  function svgIcon(d) {
+    const ns = 'http://www.w3.org/2000/svg';
+    const s = document.createElementNS(ns, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', '26'); s.setAttribute('height', '26');
+    s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
+    const p = document.createElementNS(ns, 'path'); p.setAttribute('d', d); s.append(p);
+    return s;
+  }
+
+  function markLive(c) {
+    c.status = 'Live';
+    const t = today();
+    if (!c.launchDate || daysUntil(c.launchDate) > 0) c.launchDate = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    c.updatedAt = new Date().toISOString();
+    render();
+    putCampaign(c).then(ok => ok && toast(`“${c.name}” marked live`));
+  }
+
+  // ---------- Form ----------
+  const dlg = $('#dlg'), form = $('#form');
+  let editingId = null;
+
+  function buildFormOptions() {
+    $('#lobList').replaceChildren(...uniq([...prefs.lobs, ...campaigns.map(c => c.lob)]).sort().map(v => el('option', { value: v })));
+    $('#typeList').replaceChildren(...uniq([...TYPES, ...campaigns.map(c => c.type)]).map(v => el('option', { value: v })));
+    $('#tagList').replaceChildren(...uniq(campaigns.flatMap(c => c.tags)).map(v => el('option', { value: v })));
+    $('#segBox').replaceChildren(...SEGMENTS.map(v => el('label', {}, el('input', { type: 'checkbox', name: 'segment', value: v }), v)));
+    $('#motionBox').replaceChildren(...MOTIONS.map(v => el('label', {}, el('input', { type: 'checkbox', name: 'motion', value: v }), v)));
+    $('#statusBox').replaceChildren(...STATUSES.map(s => el('label', {}, el('input', { type: 'radio', name: 'status', value: s.id }), el('span', { class: 'dot', style: `background:${s.color}` }), s.id)));
+    $('#window').replaceChildren(...WINDOWS.map(w => el('option', { value: w }, w || '—')));
+    const ys = allYears(); const nextY = ys[ys.length - 1] + 1;
+    $('#year').replaceChildren(...[...ys, nextY].map(y => el('option', { value: y }, 'FY ' + y)));
+  }
+  function syncStatusUI() {
+    const st = form.status.value;
+    $('#statusHelp').textContent = statusOf(st).help;
+    $('#dateLabel').textContent = st === 'Live' ? 'Launch date' : 'Estimated launch date';
+  }
+
+  function openForm(c) {
+    buildFormOptions();
+    form.reset();
+    form.querySelectorAll('.field.invalid').forEach(f => f.classList.remove('invalid'));
+    editingId = c ? c.id : null;
+    $('#dlgTitle').textContent = c ? 'Edit campaign' : 'Add campaign';
+    $('#deleteBtn').style.display = c ? '' : 'none';
+    const v = c || { newRefresh: 'New', status: 'Planning', type: 'Campaign', segment: [], motion: [], tags: [], languages: [] };
+    form.name.value = v.name || '';
+    form.description.value = v.description || '';
+    form.lob.value = v.lob && v.lob !== 'Unassigned' ? v.lob : '';
+    form.type.value = v.type || 'Campaign';
+    form.newRefresh.value = v.newRefresh;
+    form.status.value = v.status;
+    form.launchDate.value = v.launchDate || '';
+    form.window.value = v.window || '';
+    form.year.value = String(v.year || prefs.year);
+    form.languages.value = (v.languages || []).join(', ');
+    form.owner.value = v.owner || '';
+    form.tags.value = (v.tags || []).join(', ');
+    form.notes.value = v.notes || '';
+    form.querySelectorAll('input[name=segment]').forEach(i => i.checked = v.segment.includes(i.value));
+    form.querySelectorAll('input[name=motion]').forEach(i => i.checked = v.motion.includes(i.value));
+    syncStatusUI();
+    dlg.showModal();
+    form.name.focus();
+  }
+
+  form.addEventListener('change', e => {
+    if (e.target.name === 'status') syncStatusUI();
+    if (e.target.name === 'launchDate') { const y = yearOfDate(form.launchDate.value); if (y) { if (![...form.year.options].some(o => +o.value === y)) form.year.append(el('option', { value: y }, 'FY ' + y)); form.year.value = String(y); } }
+    if (e.target.name === 'year') { const y = yearOfDate(form.launchDate.value); if (y && y !== +form.year.value) form.launchDate.value = ''; }
+  });
+  dlg.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dlg.close()));
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = form.name.value.trim(), lob = form.lob.value.trim();
+    const status = form.status.value;
+    const date = form.launchDate.value, win = form.window.value;
+    let ok = true;
+    const flag = (id, bad) => { $(id).classList.toggle('invalid', bad); if (bad) ok = false; };
+    flag('#fName', !name);
+    flag('#fLob', !lob);
+    flag('#fDate', status !== 'Live' ? (!date && !win) : false);
+    if (!ok) { form.querySelector('.field.invalid input, .field.invalid textarea')?.focus(); return; }
+
+    const data = normalize({
+      id: editingId || undefined,
+      name, lob, status, launchDate: date, window: win, year: +form.year.value,
+      description: form.description.value.trim(),
+      type: form.type.value.trim(),
+      newRefresh: form.newRefresh.value,
+      segment: [...form.querySelectorAll('input[name=segment]:checked')].map(i => i.value),
+      motion: [...form.querySelectorAll('input[name=motion]:checked')].map(i => i.value),
+      languages: splitList(form.languages.value.toUpperCase()),
+      tags: splitList(form.tags.value),
+      owner: form.owner.value.trim(),
+      notes: form.notes.value.trim(),
+      createdAt: editingId ? campaigns.find(c => c.id === editingId)?.createdAt : undefined,
+      updatedAt: new Date().toISOString()
+    });
+    if (!prefs.lobs.includes(lob)) { prefs.lobs.push(lob); savePrefs(); }
+    if (editingId) campaigns = campaigns.map(c => c.id === editingId ? data : c);
+    else campaigns.push(data);
+    // make sure a newly added campaign isn't instantly hidden by a toggle
+    for (const g of GROUPS) {
+      const off = offSet(g.key);
+      const vals = g.of(data);
+      if (vals.length && vals.every(v => off.has(v))) { vals.forEach(v => off.delete(v)); prefs.off[g.key] = [...off]; }
+    }
+    if (data.year !== prefs.year) { prefs.year = data.year; try { history.replaceState(null, '', '#y' + data.year); } catch {} }
+    savePrefs();
+    const wasEdit = !!editingId;
+    dlg.close(); render();
+    putCampaign(data).then(ok => ok && toast(wasEdit ? 'Campaign updated' : 'Campaign added'));
+  });
+
+  $('#deleteBtn').addEventListener('click', async () => {
+    const c = campaigns.find(x => x.id === editingId);
+    if (!c) return;
+    dlg.close();
+    const ok = await ask('Delete campaign?', `“${c.name}” will be removed for everyone. This can’t be undone.`,
+      [{ label: 'Cancel', value: false }, { label: 'Delete', value: true, kind: 'primary' }]);
+    if (!ok) return;
+    campaigns = campaigns.filter(x => x.id !== c.id);
+    render();
+    if (await removeCampaign(c.id)) toast('Campaign deleted');
+  });
+
+  // ---------- Data menu ----------
+  const menu = $('#dataMenu');
+  $('#dataMenuBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const open = menu.classList.toggle('open');
+    $('#dataMenuBtn').setAttribute('aria-expanded', String(open));
+  });
+  document.addEventListener('click', () => { menu.classList.remove('open'); $('#dataMenuBtn').setAttribute('aria-expanded', 'false'); });
+
+  async function download(filename, text, type) {
+    if (!downloads) {
+      const a = el('a', { href: URL.createObjectURL(new Blob([text], { type })), download: filename });
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      return;
+    }
+    try { const r = await downloads.save({ filename, data: new Blob([text], { type }) }); if (r.status === 'saved') toast('File saved'); }
+    catch (e) { if (e?.code !== 'declined') toast('The file wasn’t saved'); }
+  }
+  const stamp = () => new Date().toISOString().slice(0, 10);
+  const csvCell = v => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+
+  menu.querySelector('.menu-list').addEventListener('click', async e => {
+    const act = e.target.closest('button')?.dataset.act;
+    if (!act) return;
+    if (act === 'export-json') {
+      download(`campaigns-${stamp()}.json`, JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), campaigns }, null, 2), 'application/json');
+    } else if (act === 'export-csv') {
+      const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch date', 'Target window', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Tags', 'Owner', 'Notes'];
+      const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, c.launchDate, c.window, c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.tags.join('; '), c.owner, c.notes].map(v => csvCell(String(v))).join(','));
+      download(`campaigns-${prefs.year}-${stamp()}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
+    } else if (act === 'import') {
+      $('#importFile').click();
+    } else if (act === 'clear') {
+      if (!campaigns.length) return toast('There are no campaigns to clear');
+      const ok = await ask('Clear all campaigns?', `All ${campaigns.length} campaign(s) will be removed for everyone. Export a backup first if you want to keep them.`,
+        [{ label: 'Cancel', value: false }, { label: 'Clear all', value: true, kind: 'primary' }]);
+      if (!ok) return;
+      const gone = campaigns.slice();
+      campaigns = []; render();
+      for (const c of gone) if (!(await removeCampaign(c.id))) return;
+      toast('All campaigns cleared');
+    }
+  });
+
+  $('#importFile').addEventListener('change', async e => {
+    const file = e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    try {
+      const raw = JSON.parse(await file.text());
+      const list = (Array.isArray(raw) ? raw : raw.campaigns || []).map(normalize).filter(c => c.name);
+      if (!list.length) return toast('That file has no campaigns in it');
+      let mode = 'merge';
+      if (campaigns.length) {
+        mode = await ask(`Import ${list.length} campaign(s)`, `There are already ${campaigns.length} campaign(s) here. Merge adds the new ones and updates matching ones. Replace removes everything else first.`,
+          [{ label: 'Cancel', value: null }, { label: 'Replace', value: 'replace' }, { label: 'Merge', value: 'merge', kind: 'primary' }]);
+        if (!mode) return;
+      }
+      const incoming = new Set(list.map(c => c.id));
+      const removed = mode === 'replace' ? campaigns.filter(c => !incoming.has(c.id)) : [];
+      const byId = new Map((mode === 'replace' ? [] : campaigns).map(c => [c.id, c]));
+      list.forEach(c => byId.set(c.id, c));
+      campaigns = [...byId.values()]; render();
+      for (const c of removed) if (!(await removeCampaign(c.id))) return;
+      for (const c of list) if (!(await putCampaign(c))) return;
+      toast(`Imported ${list.length} campaign(s)`);
+    } catch { toast('Couldn’t read that file — is it a campaigns .json export?'); }
+  });
+
+
+  // ---------- Misc controls ----------
+  function resetFilters() {
+    prefs.off = {}; savePrefs();
+    $('#search').value = ''; $('#windowSel').value = 'all';
+    render();
+  }
+  $('#resetFilters').addEventListener('click', resetFilters);
+  $('#search').addEventListener('input', render);
+  $('#windowSel').addEventListener('change', render);
+  $('#groupSel').addEventListener('change', e => { prefs.group = e.target.value; savePrefs(); render(); });
+  $('#addBtn').addEventListener('click', () => openForm());
+  $('#toggleFilters').addEventListener('click', () => { prefs.collapsed = !prefs.collapsed; savePrefs(); applyCollapsed(); });
+  function applyCollapsed() {
+    $('#filters').classList.toggle('collapsed', prefs.collapsed);
+    $('#toggleFilters').textContent = prefs.collapsed ? 'Show toggles' : 'Hide toggles';
+    $('#toggleFilters').setAttribute('aria-expanded', String(!prefs.collapsed));
+  }
+
+
+  // ---------- Render ----------
+  function render() {
+    const list = filtered();
+    renderTabs();
+    $('#listTitle').textContent = `${prefs.year} campaigns`;
+    renderFilters();
+    renderKpis(list);
+    renderTimeline(list);
+    renderByLob(list);
+    renderList(list);
+  }
+
+  // ---------- Boot ----------
+  async function boot() {
+    const hashYear = /^#y(\d{4})$/.exec(location.hash || '');
+    if (hashYear) prefs.year = +hashYear[1];
+    if (!Number.isInteger(prefs.year)) prefs.year = BASE_YEARS.includes(new Date().getFullYear()) ? new Date().getFullYear() : BASE_YEARS[0];
+    $('#groupSel').value = prefs.group;
+    applyCollapsed();
+    renderLegend();
+    document.querySelectorAll('.dl-only').forEach(b => b.hidden = true);
+    $('#storageNote').textContent = 'Loading campaigns…';
+    render();
+
+    const api = window.claude;
+    const [db, user, dl] = api?.use
+      ? await Promise.all(['db', 'user', 'downloads'].map(n => api.use(n).catch(() => null)))
+      : [null, null, null];
+    downloads = dl;
+    document.querySelectorAll('.dl-only').forEach(b => b.hidden = !!api?.use && !downloads);
+    if (db) {
+      col = db.collection('campaigns');
+      if (user) { const w = await user.can('data.write').catch(() => null); canWrite = w !== false; }
+      col.onSnapshot(snap => {
+        campaigns = snap.docs.map(d => normalize({ ...d.data(), id: d.id })).filter(c => c.name);
+        render();
+      }, () => toast('Live updates stopped. Reload the page to reconnect.'));
+      applyAccess();
+    } else {
+      const saved = store.get(STORE_KEY);
+      if (saved && Array.isArray(saved.campaigns)) campaigns = saved.campaigns.map(normalize);
+      setNote(store.set(PREF_KEY, prefs));
+      render();
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
