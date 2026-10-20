@@ -4,6 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Forward Looking Campaigns</title>
+<script>
+// Shared campaign list for the GitHub Pages site, stored in Firebase Firestore.
+// The config below is a public identifier, not a secret; firestore.rules controls what visitors can write.
+window.FLC_FIREBASE = {
+  "apiKey": "AIzaSyDpWbMLKcPtHsWVftD0pn2aUdHCq1J-D0k",
+  "authDomain": "forward-looking-campaigns.firebaseapp.com",
+  "projectId": "forward-looking-campaigns",
+  "storageBucket": "forward-looking-campaigns.firebasestorage.app",
+  "messagingSenderId": "909678392673",
+  "appId": "1:909678392673:web:2f704433790a037b5ec120"
+};
+window.FLC_BACKEND = async () => {
+  const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  const { initializeApp } = await import(base + 'firebase-app.js');
+  const fs = await import(base + 'firebase-firestore.js');
+  const db = fs.getFirestore(initializeApp(window.FLC_FIREBASE));
+  const col = fs.collection(db, 'campaigns');
+  return {
+    subscribe: (next, onError) => fs.onSnapshot(col,
+      snap => next(snap.docs.map(d => ({ ...d.data(), id: d.id })).filter(c => !c.deleted)), onError),
+    put: c => fs.setDoc(fs.doc(col, c.id), { ...c, deleted: false }),
+    // Deletes only hide a campaign, so anything removed can be restored from the Firebase console.
+    remove: id => fs.updateDoc(fs.doc(col, id), { deleted: true, deletedAt: new Date().toISOString() })
+  };
+};
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -736,10 +762,13 @@
   const prefs = Object.assign({ lobs: DEFAULT_LOBS.slice(), off: {}, group: 'none', sort: { key: 'date', dir: 1 }, collapsed: false }, store.get(PREF_KEY) || {});
   // Campaigns live in the artifact's shared database (collection "campaigns", one doc per campaign).
   // If the database isn't available in this view, fall back to this browser's storage.
-  let col = null, canWrite = true, downloads = null;
-  const saveLocal = () => { if (!col) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
+  // A page hosted outside claude.ai can supply its own shared store as window.FLC_BACKEND (see the GitHub build).
+  let col = null, ext = null, canWrite = true, downloads = null;
+  const saveLocal = () => { if (!col && !ext) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
   const setNote = ok => {
-    $('#storageNote').textContent = col
+    $('#storageNote').textContent = ext
+      ? 'Campaigns are saved online and shared with everyone who opens this page.'
+      : col
       ? (canWrite ? 'Campaigns are saved to this dashboard and shared with everyone who opens it.' : 'You have view-only access to this dashboard.')
       : ok ? 'Shared storage isn’t available in this view, so campaigns are saved in this browser only.'
            : 'Storage is unavailable here, so changes last only until you close this tab.';
@@ -754,8 +783,10 @@
       return false;
     }
   }
-  const putCampaign = c => col ? writeOp(() => col.doc(c.id).set(plain(c))) : (saveLocal(), Promise.resolve(true));
-  const removeCampaign = id => col ? writeOp(() => col.doc(id).delete()) : (saveLocal(), Promise.resolve(true));
+  const putCampaign = c => col ? writeOp(() => col.doc(c.id).set(plain(c)))
+    : ext ? writeOp(() => ext.put(plain(c))) : (saveLocal(), Promise.resolve(true));
+  const removeCampaign = id => col ? writeOp(() => col.doc(id).delete())
+    : ext ? writeOp(() => ext.remove(id)) : (saveLocal(), Promise.resolve(true));
   function applyAccess() {
     document.body.classList.toggle('readonly', !canWrite);
     setNote(true);
@@ -1559,7 +1590,19 @@
         render();
       }, () => toast('Live updates stopped. Reload the page to reconnect.'));
       applyAccess();
-    } else {
+      return;
+    }
+    if (!api?.use && typeof window.FLC_BACKEND === 'function') {
+      try { ext = await window.FLC_BACKEND(); } catch { ext = null; }
+      if (ext) {
+        ext.subscribe(list => { campaigns = list.map(normalize).filter(c => c.name); render(); },
+          () => toast('Live updates stopped. Reload the page to reconnect.'));
+        applyAccess();
+        return;
+      }
+      toast('Couldn’t reach the shared campaign list, so changes are saved in this browser only.');
+    }
+    {
       const saved = store.get(STORE_KEY);
       if (saved && Array.isArray(saved.campaigns)) campaigns = saved.campaigns.map(normalize);
       setNote(store.set(PREF_KEY, prefs));

@@ -1,0 +1,38 @@
+rules_version = '2';
+
+// Rules for the Forward Looking Campaigns site. Paste into Firebase console → Firestore → Rules → Publish.
+// Anyone with the link can read and add/edit campaigns (no sign-in), but only well-formed campaigns are
+// accepted, and documents can't be hard-deleted: the site's Delete marks a campaign as deleted instead.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isCampaign(d, id) {
+      return d.keys().hasOnly(['id', 'name', 'description', 'lob', 'type', 'newRefresh', 'segment', 'motion',
+                               'status', 'launch', 'year', 'languages', 'owner', 'notes',
+                               'createdAt', 'updatedAt', 'deleted', 'deletedAt'])
+        && d.id == id
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 300
+        && d.lob is string && d.lob.size() > 0 && d.lob.size() <= 100
+        && d.type in ['Campaign', 'Campaign in a Box']
+        && d.newRefresh in ['New', 'Refresh']
+        && d.status in ['Planning', 'In Progress', 'Live']
+        && d.launch is string && d.launch.matches('^[0-9]{4}-(0[1-9]|1[0-2]|Q[1-4])$')
+        && d.description is string && d.description.size() <= 2000
+        && d.notes is string && d.notes.size() <= 4000
+        && d.owner is string && d.owner.size() <= 200
+        && d.segment is list && d.segment.size() <= 2
+        && d.motion is list && d.motion.size() <= 2
+        && d.languages is list && d.languages.size() <= 40;
+    }
+
+    match /campaigns/{id} {
+      allow read: if true;
+      allow create, update: if isCampaign(request.resource.data, id);
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

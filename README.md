@@ -23,8 +23,13 @@ estimated launch month or quarter (this also sets the year tab), language versio
 
 ## Where data is saved
 
-Opened as a plain web page, campaigns are saved in the viewer's browser (localStorage). Use
-**Data → Export backup** to save a `.json` file and **Data → Import backup** to load it elsewhere.
+The GitHub Pages site saves campaigns to a shared Firebase Firestore database, so anyone who opens the
+site can add, edit, mark live or delete campaigns and everyone sees the change live. No sign-in is needed.
 
-The same page published as a claude.ai artifact uses the artifact's shared database instead,
-so everyone with access sees the same campaigns.
+- `firestore.rules` holds the database rules. Paste them into Firebase console → Firestore → Rules → Publish
+  whenever they change.
+- Only well-formed campaigns are accepted, and nothing is hard-deleted: Delete marks a campaign `deleted: true`,
+  so it can be restored from the Firebase console.
+- **Data → Export backup** saves a `.json` copy; **Data → Import backup** loads one.
+
+The same page published as a claude.ai artifact uses the artifact's own shared database instead.
