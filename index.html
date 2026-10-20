@@ -368,6 +368,15 @@
     border-radius: 6px; padding: 6px 8px; font-size: 12.5px; line-height: 1.3; min-width: 0;
   }
   .cal-chip:hover { border-color: var(--muted); }
+  .cal-open { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; }
+  .cal-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .live-btn {
+    display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--st-live); color: var(--st-live); font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .live-btn:hover { background: var(--st-live); color: var(--surface); }
+  .row-actions .btn.live-btn { height: 30px; padding: 0 12px; }
+  .dlg-foot .live-btn { height: 36px; padding: 0 14px; font-size: 14px; }
   .cal-chip b { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .cal-chip small { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; color: var(--muted); font-size: 11px; margin-top: 3px; }
   .cal-chip.s-live { border-left-color: var(--st-live); }
@@ -668,6 +677,7 @@
     </div>
     <div class="dlg-foot">
       <button type="button" class="btn danger write-only" id="deleteBtn">Delete</button>
+      <button type="button" class="live-btn write-only" id="liveBtn">✓ Mark live</button>
       <div style="display:flex;gap:8px;margin-left:auto">
         <button type="button" class="btn" data-close>Cancel</button>
         <button type="submit" class="btn primary write-only" id="saveBtn">Save campaign</button>
@@ -1153,7 +1163,7 @@
       el('td', {}, [...c.segment, ...c.motion].map(x => el('span', { class: 'tag strong' }, x)), (!c.segment.length && !c.motion.length) ? el('span', { style: 'color:var(--muted)' }, '—') : null),
       el('td', {}, c.languages.length ? el('span', { class: 'tag', title: 'Language versions' }, c.languages.join(', ')) : el('span', { style: 'color:var(--muted)' }, '—')),
       el('td', {}, el('div', { class: 'row-actions' },
-        c.status !== 'Live' && canWrite ? el('button', { class: 'btn ghost', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, 'Mark live') : null,
+        c.status !== 'Live' && canWrite ? el('button', { class: 'btn live-btn', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, '✓ Mark live') : null,
         el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(c) }, canWrite ? 'Edit' : 'View'),
         canWrite ? el('button', { class: 'btn ghost del', type: 'button', title: 'Delete campaign', onclick: () => deleteCampaign(c) }, 'Delete') : null))
     );
@@ -1168,13 +1178,18 @@
     return s;
   }
 
+  // One click: status becomes Live and, unless it already has a past or current month, the launch becomes this month.
   function markLive(c) {
+    const prev = { status: c.status, launch: c.launch, year: c.year, updatedAt: c.updatedAt };
     c.status = 'Live';
     const t = today(), L = parseLaunch(c.launch);
-    if (!L || monthsAway(L) > 0) { c.launch = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; c.year = t.getFullYear(); }
+    if (!L || L.kind === 'quarter' || monthsAway(L) > 0) { c.launch = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; c.year = t.getFullYear(); }
     c.updatedAt = new Date().toISOString();
     render();
-    putCampaign(c).then(ok => ok && toast(`“${c.name}” marked live`));
+    putCampaign(c).then(ok => ok && toast(`“${c.name}” is live`, {
+      label: 'Undo',
+      fn: () => { Object.assign(c, prev); render(); putCampaign(c).then(r => r && toast('Change undone')); }
+    }));
   }
 
   // ---------- Form ----------
@@ -1215,6 +1230,7 @@
     editingId = c ? c.id : null;
     $('#dlgTitle').textContent = c ? 'Edit campaign' : 'Add campaign';
     $('#deleteBtn').style.display = c ? '' : 'none';
+    $('#liveBtn').style.display = c && c.status !== 'Live' ? '' : 'none';
     const v = c || { newRefresh: 'New', status: 'Planning', type: 'Campaign', segment: [], motion: [], languages: [] };
     form.name.value = v.name || '';
     form.description.value = v.description || '';
@@ -1291,6 +1307,12 @@
       fn: () => { campaigns.push(c); render(); putCampaign(c).then(r => r && toast('Campaign restored')); }
     }));
   }
+  $('#liveBtn').addEventListener('click', () => {
+    const c = campaigns.find(x => x.id === editingId);
+    if (!c) return;
+    dlg.close();
+    markLive(c);
+  });
   $('#deleteBtn').addEventListener('click', () => {
     const c = campaigns.find(x => x.id === editingId);
     if (!c) return;
@@ -1418,7 +1440,8 @@
     const lobAll = (prefs.calLob || ALL_LOBS) === ALL_LOBS;
     const L = parseLaunch(c.launch);
     const mcls = L.kind === 'month' ? ' m' + (L.m % 3 + 1) : '';
-    return el('button', { type: 'button', class: 'cal-chip ' + st + mcls, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
+    return el('div', { class: 'cal-chip ' + st + mcls },
+      el('button', { type: 'button', class: 'cal-open', title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
       el('b', {}, c.name),
       el('small', {},
         L.kind === 'month' ? el('span', { class: 'mtag' }, el('i', { 'aria-hidden': 'true' }), MONTHS[L.m]) : el('span', { class: 'mtag' }, 'Month TBD'),
@@ -1427,7 +1450,9 @@
         el('span', {}, c.status === 'Live' ? 'Launched' : c.status),
         lobAll ? el('span', {}, '· ' + c.lob) : null,
         isEiab(c) ? el('span', {}, '· in a Box') : null,
-        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null));
+        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null)),
+      c.status !== 'Live' && canWrite ? el('div', { class: 'cal-actions' },
+        el('button', { type: 'button', class: 'live-btn', title: 'Mark this campaign as live', onclick: () => markLive(c) }, '✓ Mark live')) : null);
   }
   function renderCalendar() {
     const f = prefs.calFilter || 'all', t = today();
