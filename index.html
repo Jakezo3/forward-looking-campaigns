@@ -392,6 +392,37 @@
   .mlegend .m1 { --mc: var(--m1); } .mlegend .m2 { --mc: var(--m2); } .mlegend .m3 { --mc: var(--m3); }
   .mlegend .mq i { background: none; border: 1.5px solid var(--muted); width: 7px; height: 7px; }
 
+  /* Campaign Calendar: per-LoB Gantt of what retires and what replaces it */
+  .cc { padding: 20px clamp(16px, 3vw, 28px) 24px; }
+  .cc-title { font-family: 'Fraunces', Georgia, serif; font-size: clamp(20px, 2.6vw, 26px); text-align: center; text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 6px; text-wrap: balance; margin-bottom: 14px; }
+  .cc-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .cc-grid { display: grid; grid-template-columns: repeat(12, minmax(68px, 1fr)); grid-auto-rows: minmax(46px, auto); gap: 6px 4px; min-width: 860px; position: relative; }
+  .cc-month { grid-row: 1; font-weight: 700; font-size: 13px; letter-spacing: .04em; color: var(--accent); padding: 6px 4px; border-bottom: 2px solid var(--accent); }
+  .cc-month.now { background: var(--accent-soft); border-radius: 6px 6px 0 0; }
+  .cc-lobrow { grid-column: 1 / -1; font-weight: 700; font-size: 13px; padding: 10px 2px 2px; color: var(--text); border-bottom: 1px solid var(--border); }
+  .cc-sep { grid-column: 1 / -1; height: 1px; background: var(--border); align-self: center; }
+  .cc-bar {
+    display: flex; flex-direction: column; justify-content: center; gap: 2px; text-align: left; cursor: pointer; min-width: 0;
+    padding: 6px 10px; border-radius: 6px; font-size: 12.5px; line-height: 1.3; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border);
+  }
+  .cc-bar:hover { border-color: var(--muted); }
+  .cc-bar b { font-weight: 700; }
+  .cc-bar u { text-decoration-color: var(--accent); text-underline-offset: 2px; }
+  .cc-bar small { font-size: 11px; color: var(--muted); }
+  .cc-bar.retire { background: var(--surface); }
+  .cc-bar.active { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .cc-bar.continuous { background: var(--surface-2); }
+  .cc-bar.arrow { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); padding-right: 24px; border-right: 0; }
+  .cc-empty { grid-column: 1 / -1; color: var(--muted); font-size: 13px; padding: 18px 4px; }
+  .cc-hint { font-size: 12px; color: var(--muted); margin-top: 12px; max-width: 80ch; }
+  .rep-list { max-height: 190px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); padding: 4px; display: flex; flex-direction: column; }
+  .rep-list label { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text); font-weight: 500; }
+  .rep-list label:hover { background: var(--surface); }
+  .rep-list input { margin-top: 3px; accent-color: var(--accent); }
+  .rep-list small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+  .rep-empty { font-size: 12px; color: var(--muted); padding: 8px; }
+
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .year-tab {
@@ -435,6 +466,7 @@
         <button type="button" data-view="exec" aria-pressed="true">Exec summary</button>
         <button type="button" data-view="dash" aria-pressed="false">Dashboard</button>
         <button type="button" data-view="cal" aria-pressed="false">Calendar</button>
+        <button type="button" data-view="cc" aria-pressed="false">Campaign Calendar</button>
       </div>
       <div class="menu" id="dataMenu">
         <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
@@ -499,6 +531,14 @@
     </div>
     <div class="lob-row" id="calLobs" role="group" aria-label="Line of business"></div>
     <div class="cal-scroll" id="calScroll"><div class="cal-track" id="calTrack"></div></div>
+  </section>
+
+  <!-- Campaign Calendar -->
+  <section class="card cc" id="ccView" hidden aria-label="Campaign Calendar">
+    <h2 class="cc-title" id="ccTitle">Marketing Campaign Launch Overview</h2>
+    <div class="lob-row" id="ccLobs" role="group" aria-label="Line of business"></div>
+    <div class="cc-scroll"><div class="cc-grid" id="ccGrid"></div></div>
+    <p class="cc-hint">Bars run from launch until a campaign is retired. To show a retirement, open the new campaign and tick what it <b>Replaces</b>: the old one then ends the month before the new one launches, and they share a row. A campaign can also be given its own <b>Retire in</b> month.</p>
   </section>
 
   <div id="dashView" hidden>
@@ -661,6 +701,16 @@
         <div class="err">Pick an estimated launch month or quarter.</div>
       </div>
 
+      <div class="field span2">
+        <span class="lbl">Replaces <span class="hint">(optional: campaigns this one retires, shown on the Campaign Calendar)</span></span>
+        <div class="rep-list" id="repList"></div>
+      </div>
+      <div class="field">
+        <label for="retire">Retire in <span class="hint">(optional, if it ends without a replacement)</span></label>
+        <select id="retire" name="retire"></select>
+      </div>
+      <div class="field"></div>
+
       <div class="field">
         <label for="languages">Language versions <span class="hint">(comma-separated)</span></label>
         <input type="text" id="languages" name="languages" placeholder="EN, DE, FR, JA">
@@ -736,10 +786,13 @@
   const prefs = Object.assign({ lobs: DEFAULT_LOBS.slice(), off: {}, group: 'none', sort: { key: 'date', dir: 1 }, collapsed: false }, store.get(PREF_KEY) || {});
   // Campaigns live in the artifact's shared database (collection "campaigns", one doc per campaign).
   // If the database isn't available in this view, fall back to this browser's storage.
-  let col = null, canWrite = true, downloads = null;
-  const saveLocal = () => { if (!col) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
+  // A page hosted outside claude.ai can supply its own shared store as window.FLC_BACKEND (see the GitHub build).
+  let col = null, ext = null, canWrite = true, downloads = null;
+  const saveLocal = () => { if (!col && !ext) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
   const setNote = ok => {
-    $('#storageNote').textContent = col
+    $('#storageNote').textContent = ext
+      ? 'Campaigns are saved online and shared with everyone who opens this page.'
+      : col
       ? (canWrite ? 'Campaigns are saved to this dashboard and shared with everyone who opens it.' : 'You have view-only access to this dashboard.')
       : ok ? 'Shared storage isn’t available in this view, so campaigns are saved in this browser only.'
            : 'Storage is unavailable here, so changes last only until you close this tab.';
@@ -754,8 +807,10 @@
       return false;
     }
   }
-  const putCampaign = c => col ? writeOp(() => col.doc(c.id).set(plain(c))) : (saveLocal(), Promise.resolve(true));
-  const removeCampaign = id => col ? writeOp(() => col.doc(id).delete()) : (saveLocal(), Promise.resolve(true));
+  const putCampaign = c => col ? writeOp(() => col.doc(c.id).set(plain(c)))
+    : ext ? writeOp(() => ext.put(plain(c))) : (saveLocal(), Promise.resolve(true));
+  const removeCampaign = id => col ? writeOp(() => col.doc(id).delete())
+    : ext ? writeOp(() => ext.remove(id)) : (saveLocal(), Promise.resolve(true));
   function applyAccess() {
     document.body.classList.toggle('readonly', !canWrite);
     setNote(true);
@@ -842,6 +897,8 @@
       languages: arr(c.languages),
       owner: String(c.owner || ''),
       notes: String(c.notes || ''),
+      replaces: arr(c.replaces).filter(x => x !== c.id),
+      retire: /^\d{4}-(0[1-9]|1[0-2])$/.test(c.retire || '') ? c.retire : '',
       createdAt: c.createdAt || new Date().toISOString(),
       updatedAt: c.updatedAt || new Date().toISOString()
     };
@@ -1217,6 +1274,25 @@
     if (k && k.kind === kind) sel.value = keep;
     else if (k) sel.value = kind === 'quarter' ? `${k.y}-Q${k.q}` : `${k.y}-${String((k.q - 1) * 3 + 1).padStart(2, '0')}`;
   }
+  // "Replaces": other campaigns in the same LoB that this one retires.
+  function fillReplaces(selected) {
+    const lob = form.lob.value.trim();
+    const box = $('#repList');
+    const list = campaigns.filter(c => c.lob === lob && c.id !== editingId)
+      .sort((a, b) => launchSortKey(a.launch) - launchSortKey(b.launch) || a.name.localeCompare(b.name));
+    if (!lob) return box.replaceChildren(el('div', { class: 'rep-empty' }, 'Pick a line of business to see its campaigns.'));
+    if (!list.length) return box.replaceChildren(el('div', { class: 'rep-empty' }, `No other ${lob} campaigns yet.`));
+    box.replaceChildren(...list.map(c => el('label', {},
+      el('input', { type: 'checkbox', name: 'replaces', value: c.id, checked: selected.includes(c.id) }),
+      el('span', {}, c.name, el('small', {}, `${c.status === 'Live' ? 'Launched' : c.status} · ${launchLabel(c.launch) || 'no launch set'}`)))));
+  }
+  function fillRetire(keep) {
+    const ys = allYears(); const years = [...ys, ys[ys.length - 1] + 1];
+    const sel = $('#retire');
+    sel.replaceChildren(el('option', { value: '' }, 'Not retiring'),
+      ...years.map(y => el('optgroup', { label: String(y) }, ...MONTHS.map((m, i) => el('option', { value: `${y}-${String(i + 1).padStart(2, '0')}` }, `${m} ${y}`)))));
+    sel.value = keep || '';
+  }
   function syncStatusUI() {
     const st = form.status.value;
     $('#statusHelp').textContent = statusOf(st).help;
@@ -1240,6 +1316,8 @@
     form.status.value = v.status;
     form.launchKind.value = parseLaunch(v.launch)?.kind || 'month';
     fillLaunchOptions(v.launch || '');
+    fillReplaces(v.replaces || []);
+    fillRetire(v.retire || '');
     form.languages.value = (v.languages || []).join(', ');
     form.owner.value = v.owner || '';
     form.notes.value = v.notes || '';
@@ -1250,6 +1328,9 @@
     form.name.focus();
   }
 
+  form.addEventListener('input', e => {
+    if (e.target.name === 'lob') fillReplaces([...form.querySelectorAll('input[name=replaces]:checked')].map(i => i.value));
+  });
   form.addEventListener('change', e => {
     if (e.target.name === 'status') syncStatusUI();
     if (e.target.name === 'launchKind') fillLaunchOptions(form.launch.value);
@@ -1280,6 +1361,8 @@
       languages: splitList(form.languages.value.toUpperCase()),
       owner: form.owner.value.trim(),
       notes: form.notes.value.trim(),
+      replaces: [...form.querySelectorAll('input[name=replaces]:checked')].map(i => i.value),
+      retire: form.retire.value,
       createdAt: editingId ? campaigns.find(c => c.id === editingId)?.createdAt : undefined,
       updatedAt: new Date().toISOString()
     });
@@ -1503,11 +1586,81 @@
   }
   document.querySelectorAll('#calFilter button').forEach(b => b.addEventListener('click', () => { prefs.calFilter = b.dataset.f; savePrefs(); renderCalendar(); }));
 
+  // ---------- Campaign Calendar ----------
+  // Per-LoB view of the year: retiring campaigns on the left, their replacements continuing to the right.
+  function renderCampaignCal() {
+    const y = prefs.year, Y0 = y * 12, Y11 = y * 12 + 11, t = today();
+    const dated = campaigns.filter(c => parseLaunch(c.launch));
+    const lobs = uniq(dated.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
+    let lob = prefs.ccLob;
+    if (!lob || (lob !== ALL_LOBS && !lobs.includes(lob))) lob = (prefs.calLob && lobs.includes(prefs.calLob)) ? prefs.calLob : (lobs[0] || ALL_LOBS);
+    const lobBtn = (v, label) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
+      onclick: () => { prefs.ccLob = v; savePrefs(); renderCampaignCal(); } }, label);
+    $('#ccLobs').replaceChildren(...lobs.map(l => lobBtn(l, l)), lobBtn(ALL_LOBS, 'All LoBs'));
+    $('#ccTitle').textContent = `FY${String(y).slice(2)} ${lob === ALL_LOBS ? '' : lob + ' '}Marketing Campaign Launch Overview`;
+
+    const scope = dated.filter(c => lob === ALL_LOBS || c.lob === lob);
+    const byId = new Map(scope.map(c => [c.id, c]));
+    const succOf = new Map();
+    for (const s of scope) for (const pid of s.replaces) if (byId.has(pid)) { if (!succOf.has(pid)) succOf.set(pid, []); succOf.get(pid).push(s); }
+    const startAbs = c => { const L = parseLaunch(c.launch); return L.y * 12 + (L.kind === 'month' ? L.m : (L.q - 1) * 3); };
+    const endAbs = c => {
+      const r = parseLaunch(c.retire); if (r) return r.y * 12 + r.m;
+      const ss = succOf.get(c.id); if (ss) return Math.min(...ss.map(startAbs)) - 1;
+      return Infinity;
+    };
+    const vis = scope.filter(c => startAbs(c) <= Y11 && endAbs(c) >= Y0 && endAbs(c) >= startAbs(c));
+    const visSet = new Set(vis.map(c => c.id));
+    const label = c => {
+      const e = endAbs(c);
+      if (e <= Y11) return (succOf.get(c.id) || []).some(s => s.newRefresh === 'Refresh') ? 'Retire/Refresh' : 'Retire';
+      if (startAbs(c) < Y0) return 'Continuous';
+      return c.newRefresh === 'Refresh' ? 'Refreshed' : 'New';
+    };
+
+    // Group each campaign with the ones it replaces so they share rows.
+    const assigned = new Set(), groups = [];
+    for (const s of [...vis].sort((a, b) => startAbs(a) - startAbs(b))) {
+      const preds = s.replaces.map(id => byId.get(id)).filter(p => p && visSet.has(p.id) && !assigned.has(p.id) && p.id !== s.id);
+      if (!preds.length) continue;
+      preds.forEach(p => assigned.add(p.id)); assigned.add(s.id);
+      groups.push({ preds: preds.sort((a, b) => startAbs(a) - startAbs(b)), s });
+    }
+    for (const c of vis) if (!assigned.has(c.id)) groups.push({ preds: [], s: c });
+    const gStart = g => Math.min(...[...g.preds, g.s].map(c => Math.max(startAbs(c), Y0)));
+    groups.sort((a, b) => (lob === ALL_LOBS ? a.s.lob.localeCompare(b.s.lob) : 0) || gStart(a) - gStart(b) || a.s.name.localeCompare(b.s.name));
+
+    const cells = MONTHS.map((m, i) => el('div', { class: 'cc-month' + (t.getFullYear() === y && t.getMonth() === i ? ' now' : ''), style: `grid-column:${i + 1}` }, m.toUpperCase()));
+    const bar = (c, row, span) => {
+      const st = Math.max(startAbs(c), Y0), en = Math.min(endAbs(c), Y11);
+      const lb = label(c), retiring = lb.startsWith('Retire');
+      const cls = 'cc-bar ' + (retiring ? 'retire' : lb === 'Continuous' ? 'continuous' : 'active') + (endAbs(c) > Y11 ? ' arrow' : '');
+      const L = parseLaunch(c.launch);
+      const when = startAbs(c) >= Y0 ? `${c.status === 'Live' ? 'Launched' : 'Planned'} ${L.kind === 'month' ? MONTHS[L.m] : 'Q' + L.q}` : `Since ${launchLabel(c.launch)}`;
+      const ends = endAbs(c) <= Y11 ? ` · ends ${MONTHS[endAbs(c) - Y0]}` : '';
+      return el('button', { type: 'button', class: cls, style: `grid-column:${st - Y0 + 1} / ${en - Y0 + 2};grid-row:${row} / span ${span}`,
+        title: `${lb}: ${c.name} (${c.lob})`, onclick: () => openForm(c) },
+        el('span', {}, el('b', {}, lb + ': '), el('u', {}, c.name)),
+        el('small', {}, when + ends + (isEiab(c) ? ' · in a Box' : '') + (lob === ALL_LOBS ? '' : '')));
+    };
+    let row = 2, lastLob = null;
+    for (const g of groups) {
+      if (lob === ALL_LOBS && g.s.lob !== lastLob) { cells.push(el('div', { class: 'cc-lobrow', style: `grid-row:${row}` }, g.s.lob)); row++; lastLob = g.s.lob; }
+      const k = Math.max(g.preds.length, 1);
+      g.preds.forEach((p, i) => cells.push(bar(p, row + i, 1)));
+      cells.push(bar(g.s, row, k));
+      row += k;
+    }
+    if (!groups.length) cells.push(el('div', { class: 'cc-empty', style: 'grid-row:2' }, `No ${lob === ALL_LOBS ? '' : lob + ' '}campaigns in ${y} yet.`));
+    $('#ccGrid').replaceChildren(...cells);
+  }
+
   function applyView() {
     const v = prefs.view2;
     $('#execView').hidden = v !== 'exec';
     $('#calView').hidden = v !== 'cal';
     $('#dashView').hidden = v !== 'dash';
+    $('#ccView').hidden = v !== 'cc';
     $('#yearTabs').hidden = v === 'cal'; // the calendar runs across years
     if (v === 'cal') { calScrolled = false; renderCalendar(); }
     document.querySelectorAll('#viewSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
@@ -1526,6 +1679,7 @@
     renderList(list);
     renderExec();
     renderCalendar();
+    renderCampaignCal();
   }
 
   // ---------- Boot ----------
@@ -1537,7 +1691,8 @@
     // Exec summary is the landing view; #calendar / #dashboard link straight to the others.
     if (location.hash === '#dashboard') prefs.view2 = 'dash';
     if (location.hash === '#calendar') prefs.view2 = 'cal';
-    if (!['dash', 'cal'].includes(prefs.view2)) prefs.view2 = 'exec';
+    if (location.hash === '#campaign-calendar') prefs.view2 = 'cc';
+    if (!['dash', 'cal', 'cc'].includes(prefs.view2)) prefs.view2 = 'exec';
     applyView();
     applyCollapsed();
     renderLegend();
@@ -1559,7 +1714,19 @@
         render();
       }, () => toast('Live updates stopped. Reload the page to reconnect.'));
       applyAccess();
-    } else {
+      return;
+    }
+    if (!api?.use && typeof window.FLC_BACKEND === 'function') {
+      try { ext = await window.FLC_BACKEND(); } catch { ext = null; }
+      if (ext) {
+        ext.subscribe(list => { campaigns = list.map(normalize).filter(c => c.name); render(); },
+          () => toast('Live updates stopped. Reload the page to reconnect.'));
+        applyAccess();
+        return;
+      }
+      toast('Couldn’t reach the shared campaign list, so changes are saved in this browser only.');
+    }
+    {
       const saved = store.get(STORE_KEY);
       if (saved && Array.isArray(saved.campaigns)) campaigns = saved.campaigns.map(normalize);
       setNote(store.set(PREF_KEY, prefs));
