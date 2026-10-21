@@ -30,6 +30,11 @@
     --m1: #eb6834;
     --m2: #1baf7a;
     --m3: #6250d6;
+    /* Campaign Calendar: gray = existing campaign being replaced, blue = new / current */
+    --cc-old: #e1e3e8;
+    --cc-old-line: #b9bec9;
+    --cc-new: #d3e3fa;
+    --cc-new-line: #6f9fe0;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -52,6 +57,10 @@
       --m1: #d95926;
       --m2: #199e70;
       --m3: #9085e9;
+      --cc-old: #2c3350;
+      --cc-old-line: #4d5679;
+      --cc-new: #1c3b70;
+      --cc-new-line: #4d7fd0;
     }
   }
   :root[data-theme="dark"] {
@@ -74,6 +83,10 @@
     --m1: #d95926;
     --m2: #199e70;
     --m3: #9085e9;
+    --cc-old: #2c3350;
+    --cc-old-line: #4d5679;
+    --cc-new: #1c3b70;
+    --cc-new-line: #4d7fd0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -410,9 +423,14 @@
   .cc-bar b { font-weight: 700; }
   .cc-bar u { text-decoration-color: var(--accent); text-underline-offset: 2px; }
   .cc-bar small { font-size: 11px; color: var(--muted); }
-  .cc-bar.retire { background: var(--surface); }
-  .cc-bar.active { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-  .cc-bar.continuous { background: var(--surface-2); }
+  .cc-bar.retire { background: var(--cc-old); border-color: var(--cc-old-line); color: var(--text-2); }
+  .cc-bar.retire u { text-decoration-color: var(--muted); }
+  .cc-bar.active, .cc-bar.continuous { background: var(--cc-new); border-color: var(--cc-new-line); }
+  .cc-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; font-size: 12px; color: var(--text-2); margin: -4px 0 14px; }
+  .cc-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .cc-key i { width: 22px; height: 12px; border-radius: 3px; display: inline-block; }
+  .cc-key .old { background: var(--cc-old); border: 1px solid var(--cc-old-line); }
+  .cc-key .new { background: var(--cc-new); border: 1px solid var(--cc-new-line); }
   .cc-bar.arrow { clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%); padding-right: 24px; border-right: 0; }
   .cc-empty { grid-column: 1 / -1; color: var(--muted); font-size: 13px; padding: 18px 4px; }
   .cc-hint { font-size: 12px; color: var(--muted); margin-top: 12px; max-width: 80ch; }
@@ -536,6 +554,7 @@
   <!-- Campaign Calendar -->
   <section class="card cc" id="ccView" hidden aria-label="Campaign Calendar">
     <h2 class="cc-title" id="ccTitle">Marketing Campaign Launch Overview</h2>
+    <div class="cc-key" aria-hidden="true"><span><i class="old"></i>Existing campaign being retired / replaced</span><span><i class="new"></i>New, refreshed or continuing campaign</span></div>
     <div class="lob-row" id="ccLobs" role="group" aria-label="Line of business"></div>
     <div class="cc-scroll"><div class="cc-grid" id="ccGrid"></div></div>
     <p class="cc-hint">Bars run from launch until a campaign is retired. To show a retirement, open the new campaign and tick what it <b>Replaces</b>: the old one then ends the month before the new one launches, and they share a row. A campaign can also be given its own <b>Retire in</b> month.</p>
@@ -1636,7 +1655,7 @@
       const lb = label(c), retiring = lb.startsWith('Retire');
       const cls = 'cc-bar ' + (retiring ? 'retire' : lb === 'Continuous' ? 'continuous' : 'active') + (endAbs(c) > Y11 ? ' arrow' : '');
       const L = parseLaunch(c.launch);
-      const when = startAbs(c) >= Y0 ? `${c.status === 'Live' ? 'Launched' : 'Planned'} ${L.kind === 'month' ? MONTHS[L.m] : 'Q' + L.q}` : `Since ${launchLabel(c.launch)}`;
+      const when = startAbs(c) >= Y0 ? `${c.status === 'Live' ? 'Launched' : 'Planned'} ${L.kind === 'month' ? MONTHS[L.m] : 'Q' + L.q}` : `In market before ${y}`;
       const ends = endAbs(c) <= Y11 ? ` · ends ${MONTHS[endAbs(c) - Y0]}` : '';
       return el('button', { type: 'button', class: cls, style: `grid-column:${st - Y0 + 1} / ${en - Y0 + 2};grid-row:${row} / span ${span}`,
         title: `${lb}: ${c.name} (${c.lob})`, onclick: () => openForm(c) },
