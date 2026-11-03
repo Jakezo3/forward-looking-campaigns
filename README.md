@@ -17,7 +17,7 @@ estimated launch month or quarter (this also sets the year tab), language versio
 - **Toggles** for every LoB, segment, motion, New/Refresh, type and status, plus search and a launch window (this month, this quarter, next quarter, past target).
 - **Summary tiles**: upcoming (campaigns vs. campaigns in a box), net new, refreshed, live, in progress, past target.
 - **Exec summary** view that recreates the exec deck's summary slide (launched / net new / refreshed, then upcoming) from the live data.
-- **Launch calendar**: Month (default), Quarter or Week scale running continuously across years, with a one-click LoB row. Month view puts quarter-only campaigns in a band under their quarter; Week view shows each campaign as a bar across its launch month or quarter. Switch between All, Launched and To come.
+- **Launch calendar**: Quarter view (default) for the forward-looking plan and Month view for what launched when, running continuously across years, with a one-click LoB row. A campaign marked or saved as Live launches in the month the change is made, unless an earlier month is picked. Switch between All, Launched and To come.
 - **Campaign Calendar**: per-LoB view of the fiscal year in the style of the LoB launch-overview slides. Each campaign is a bar from launch until it's retired; a campaign's *Replaces* field puts the campaigns it retires on the same row, ending the month before it launches. Labels: Retire, Retire/Refresh, Refreshed, New, Continuous.
 - **Launch timeline** by quarter and **by-LoB** chart, both split by status.
 - **Campaign table**: sortable, groupable by LoB, status or quarter, with one-click *Mark live* and *Delete* (with Undo).
