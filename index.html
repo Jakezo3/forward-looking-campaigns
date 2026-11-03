@@ -113,7 +113,8 @@
     }
   }
   .ask-body { padding: 18px 20px; color: var(--text-2); max-width: 60ch; }
-  #ask { width: min(460px, calc(100vw - 24px)); }
+  #ask, #linkDlg { width: min(460px, calc(100vw - 24px)); }
+  #linkDlg .field { margin-top: 12px; }
   .readonly .write-only { display: none !important; }
 
   /* Header */
@@ -127,6 +128,8 @@
   h2 { font-size: 15px; font-weight: 600; }
   .sub { color: var(--text-2); margin-top: 4px; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .actions { max-width: 100%; min-width: 0; }
+  #viewSwitch { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 
   .btn {
     display: inline-flex; align-items: center; gap: 6px;
@@ -178,10 +181,13 @@
   .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
 
   /* Filters */
-  .filters { padding: 14px 16px; margin-bottom: 16px; }
-  .filter-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .filters { padding: 16px 18px; margin-bottom: 16px; }
+  .filter-head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+  .fh-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .fh-title h2 { font-size: 15px; font-weight: 600; }
+  .fh-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; flex: 1 1 420px; }
   .search {
-    flex: 1 1 220px; height: 36px; border: 1px solid var(--border); border-radius: 8px;
+    flex: 1 1 220px; max-width: 360px; height: 36px; border: 1px solid var(--border); border-radius: 8px;
     background: var(--surface-2); padding: 0 12px; min-width: 0;
   }
   select.ctl {
@@ -189,28 +195,31 @@
     background: var(--surface); padding: 0 10px; max-width: 100%;
   }
   .active-count { font-size: 12px; color: var(--muted); }
-  .filter-groups { display: grid; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .filter-groups { display: grid; gap: 12px; margin-top: 14px; }
   .filters.collapsed .filter-groups { display: none; }
-  .fg-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
-  .fg-title span { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-2); }
-  .fg-title button { background: none; border: 0; color: var(--accent); font-size: 12px; cursor: pointer; padding: 0; }
-  .fg-title button:hover { text-decoration: underline; }
+  .frow.multi { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+  .fpanel { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px 12px; background: var(--surface-2); min-width: 0; }
+  .fp-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .fp-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); display: inline-flex; gap: 8px; align-items: center; }
+  .fp-off { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 11px; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 7px; }
+  .fp-links { display: inline-flex; gap: 2px; }
+  .fp-links button { background: none; border: 0; color: var(--accent); font-size: 12px; cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+  .fp-links button:hover { background: var(--accent-soft); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 30px; padding: 0 11px; border-radius: 999px;
-    border: 1px solid var(--border); background: var(--surface-2);
-    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 500;
-    text-decoration: line-through; text-decoration-color: transparent;
+    display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
+    height: 28px; padding: 0 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--muted); cursor: pointer; font-size: 12.5px; font-weight: 500;
   }
-  .chip[aria-pressed="true"] {
-    background: var(--accent-soft); border-color: var(--accent); color: var(--text);
-  }
-  .chip[aria-pressed="false"] { text-decoration-color: var(--muted); opacity: .8; }
-  .chip .ck { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; }
+  .chip .cl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); color: var(--text); }
+  .chip[aria-pressed="false"] { background: transparent; border-style: dashed; }
+  .chip.zero[aria-pressed="true"] { color: var(--text-2); }
+  .chip .ck { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; flex: none; }
   .chip[aria-pressed="true"] .ck { background: var(--accent); border-color: var(--accent); }
   .chip[aria-pressed="true"] .ck::after { content: ""; width: 7px; height: 4px; border: 2px solid var(--accent-ink); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
-  .chip .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; text-decoration: none; }
+  .chip .n { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .empty-chips { font-size: 13px; color: var(--muted); }
 
   /* Charts */
@@ -261,30 +270,44 @@
 
   /* List */
   .list-card { padding: 0; overflow: hidden; }
-  .list-head { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .list-head { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
   .list-head .count { color: var(--muted); font-size: 13px; font-weight: 400; margin-left: 6px; }
-  .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; min-width: 920px; }
-  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); white-space: nowrap; }
-  th button { background: none; border: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
-  th button:hover { color: var(--text); }
-  th .arr { opacity: .3; }
-  th.sorted .arr { opacity: 1; color: var(--accent); }
-  tbody tr { cursor: pointer; }
-  tbody tr:hover { background: var(--surface-2); }
-  tbody tr:last-child td { border-bottom: 0; }
-  td.name-cell { min-width: 240px; }
-  td.name-cell b { font-weight: 600; display: block; }
-  td.name-cell small { color: var(--muted); display: block; margin-top: 2px; font-size: 12px; }
+  .list-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+  .lg-head { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--surface-2); border-bottom: 1px solid var(--border); font-size: 13px; }
+  .lg-n { font-size: 11px; font-weight: 700; color: var(--text-2); background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0 7px; font-variant-numeric: tabular-nums; }
+  .lg-mix { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .ci {
+    display: grid; grid-template-columns: minmax(0, 1fr) 130px 118px auto; gap: 8px 16px; align-items: center;
+    padding: 12px 18px 12px 22px; border-bottom: 1px solid var(--border); position: relative; cursor: pointer;
+  }
+  .ci::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--sc); }
+  .ci:hover { background: var(--surface-2); }
+  .lgroup:last-child .ci:last-child { border-bottom: 0; }
+  .ci-name { font-weight: 600; font-size: 14px; line-height: 1.35; }
+  .ci-desc { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .ci-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .ci-when { display: flex; flex-direction: column; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ci-when b { font-weight: 600; }
+  .ci-when > span { font-size: 12px; color: var(--muted); }
+  .spill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--sc) 14%, var(--surface)); white-space: nowrap; }
+  .ci-act { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+  .icon-act { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text-2); cursor: pointer; }
+  .icon-act:hover { background: var(--surface-2); border-color: var(--border); color: var(--text); }
+  .icon-act.del:hover { color: var(--st-risk); }
+  @media (max-width: 760px) {
+    .ci { grid-template-columns: minmax(0, 1fr) auto; }
+    .ci-when { grid-column: 1; flex-direction: row; gap: 8px; }
+    .ci-status { grid-column: 2; grid-row: 1; }
+    .ci-act { grid-column: 1 / -1; justify-content: flex-start; }
+  }
   .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); margin: 0 4px 4px 0; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
   .tag.strong { background: var(--accent-soft); border-color: transparent; color: var(--text); }
-  .date-cell { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .date-cell small { display: block; color: var(--muted); font-size: 12px; }
+  .tag.warn { color: var(--st-risk); border-color: color-mix(in srgb, var(--st-risk) 40%, var(--border)); background: transparent; font-weight: 600; }
   .risk { color: var(--st-risk); font-weight: 600; font-size: 12px; display: inline-flex; gap: 4px; align-items: center; }
-  .row-actions { display: flex; gap: 2px; justify-content: flex-end; }
-  .row-actions .btn { height: 30px; padding: 0 8px; font-size: 12px; }
+  .clink { color: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 55%, transparent); text-underline-offset: 3px; }
+  .clink:hover { color: var(--accent); }
+  .clink .ext { font-size: .85em; color: var(--accent); text-decoration: none; }
 
   .empty { padding: 56px 24px; text-align: center; }
   .empty .ill { width: 56px; height: 56px; border-radius: 14px; background: var(--accent-soft); display: grid; place-items: center; margin: 0 auto 14px; color: var(--accent); }
@@ -307,7 +330,7 @@
   @media (min-width: 640px) { .dlg-body { grid-template-columns: 1fr 1fr; } .span2 { grid-column: span 2; } }
   .field label, .field .lbl { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; }
   .field .hint { font-weight: 400; color: var(--muted); }
-  .field input[type=text], .field input[type=date], .field select, .field textarea {
+  .field input[type=text], .field input[type=date], .field input[type=url], .field select, .field textarea {
     width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 8px;
     background: var(--surface-2); padding: 0 10px;
   }
@@ -355,6 +378,8 @@
   .cal-head p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
   .cal-tools { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
   .lob-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .lob-row.one-line { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 0; padding-bottom: 4px; flex: 1 1 380px; min-width: 0; scrollbar-width: thin; }
+  .cal-bar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .lob-btn {
     height: 32px; padding: 0 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
     border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); font-size: 13px; font-weight: 500;
@@ -363,7 +388,43 @@
   .lob-btn:hover { border-color: var(--muted); color: var(--text); }
   .lob-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
   .lob-btn .n { font-size: 11px; opacity: .75; font-variant-numeric: tabular-nums; }
-  .cal-scroll { overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
+  .cal-scroll { position: relative; overflow-x: auto; padding-bottom: 8px; scroll-behavior: smooth; }
+  /* month scale */
+  .cm-grid { display: grid; grid-template-rows: auto auto auto; column-gap: 10px; min-width: 100%; }
+  .cm-head { display: flex; align-items: baseline; gap: 6px; padding: 8px 4px; border-bottom: 2px solid var(--border); }
+  .cm-head b { font-family: 'Fraunces', Georgia, serif; font-size: 18px; font-weight: 600; }
+  .cm-head span { font-size: 12px; color: var(--muted); }
+  .cm-head .c { margin-left: auto; font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+  .cm-head.now { border-bottom-color: var(--accent); }
+  .cm-head.now b, .cm-head.now .nowtag { color: var(--accent); }
+  .cm-cell { display: flex; flex-direction: column; gap: 6px; padding: 10px 0 12px; min-height: 140px; min-width: 0; }
+  .cm-cell.now { background: linear-gradient(var(--accent-soft), transparent 260px); border-radius: 0 0 10px 10px; padding: 10px 6px 12px; }
+  .cm-head.ystart, .cm-cell.ystart { border-left: 2px dashed var(--border); padding-left: 10px; }
+  .cm-band { border: 1px dashed var(--border); border-radius: 10px; padding: 8px 10px 10px; margin: 2px 0 6px; background: var(--surface-2); min-width: 0; }
+  .cm-band-head { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-2); display: flex; gap: 8px; margin-bottom: 6px; }
+  .cm-band-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+  /* week scale */
+  .cw-wrap { display: flex; min-width: 0; }
+  .cw-left { flex: none; width: 250px; border-right: 1px solid var(--border); }
+  .cw-right { flex: 1 1 auto; min-width: 0; overflow-x: auto; }
+  .cw-corner { height: 50px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); display: flex; align-items: flex-end; padding: 0 10px 6px 0; border-bottom: 1px solid var(--border); }
+  .cw-name { height: 46px; padding: 0 12px 0 0; font-size: 12.5px; line-height: 1.25; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .cw-name .cn { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cw-name small { display: block; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cw-grid {
+    display: grid; grid-template-rows: 26px 24px; grid-auto-rows: 46px; position: relative;
+    background-image: repeating-linear-gradient(to right, transparent 0 29px, color-mix(in srgb, var(--border) 70%, transparent) 29px 30px);
+  }
+  .cw-month { font-size: 12px; font-weight: 700; color: var(--accent); padding: 4px 6px; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); white-space: nowrap; overflow: hidden; background: var(--surface); }
+  .cw-week { font-size: 10px; color: var(--muted); text-align: center; padding: 4px 0; background: var(--surface); border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .cw-week.now { color: var(--accent); font-weight: 700; }
+  .cw-bar {
+    align-self: center; height: 26px; border-radius: 6px; cursor: pointer; min-width: 0;
+    background: color-mix(in srgb, var(--sc) 28%, var(--surface)); border: 1px solid var(--sc); color: var(--text);
+    font-size: 11px; font-weight: 600; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+  }
+  .cw-bar.q { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--sc) 20%, var(--surface)) 0 6px, var(--surface) 6px 12px); border-style: dashed; }
+  .cw-now { width: 2px; background: var(--accent); justify-self: center; opacity: .6; z-index: 1; pointer-events: none; }
   .cal-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 10px; min-width: 100%; }
   .cal-qcol { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .cal-qcol.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
@@ -390,7 +451,8 @@
   .live-btn:hover { background: var(--st-live); color: var(--surface); }
   .row-actions .btn.live-btn { height: 30px; padding: 0 12px; }
   .dlg-foot .live-btn { height: 36px; padding: 0 14px; font-size: 14px; }
-  .cal-chip b { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .cal-chip { cursor: pointer; }
+  .cal-chip .cn { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .cal-chip small { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: center; color: var(--muted); font-size: 11px; margin-top: 3px; }
   .cal-chip.s-live { border-left-color: var(--st-live); }
   .cal-chip.s-progress { border-left-color: var(--st-progress); }
@@ -419,7 +481,11 @@
     padding: 6px 10px; border-radius: 6px; font-size: 12.5px; line-height: 1.3; color: var(--text);
     background: var(--surface); border: 1px solid var(--border);
   }
-  .cc-bar:hover { border-color: var(--muted); }
+  .cc-bar { position: relative; padding-right: 34px; cursor: default; }
+  .cc-edit { position: absolute; top: 5px; right: 6px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; border: 0; background: none; color: var(--text-2); cursor: pointer; opacity: .65; }
+  .cc-edit:hover { opacity: 1; background: color-mix(in srgb, var(--text) 8%, transparent); }
+  .cc-bar.arrow .cc-edit { right: 24px; }
+  .cc-bar.arrow { padding-right: 52px; }
   .cc-bar b { font-weight: 700; }
   .cc-bar u { text-decoration-color: var(--accent); text-underline-offset: 2px; }
   .cc-bar small { font-size: 11px; color: var(--muted); }
@@ -510,7 +576,7 @@
 
   <!-- Exec summary -->
   <section class="card exec" id="execView" aria-label="Executive summary">
-    <h2 class="exec-title"><b id="exFy">FY 2026</b><span>Campaign Timeline &amp; Alignment to IDPs</span></h2>
+    <h2 class="exec-title"><b id="exFy">FY 2026</b><span>Campaign Launch Timeline</span></h2>
     <div class="exec-block">
       <div class="exec-period" id="exPeriod1"></div>
       <div class="exec-row">
@@ -528,7 +594,6 @@
       </div>
     </div>
     <p class="exec-foot" id="exFoot"></p>
-    <p class="exec-note">Counts update automatically from the campaigns on the dashboard. They include every LoB and ignore the dashboard toggles.</p>
   </section>
 
   <!-- Launch calendar -->
@@ -539,25 +604,31 @@
         <p id="calSub"></p>
       </div>
       <div class="cal-tools">
+        <div class="view-switch" id="calScale" role="group" aria-label="Calendar scale">
+          <button type="button" data-s="month" aria-pressed="true">Month</button>
+          <button type="button" data-s="quarter" aria-pressed="false">Quarter</button>
+          <button type="button" data-s="week" aria-pressed="false">Week</button>
+        </div>
         <div class="view-switch" id="calFilter" role="group" aria-label="Show">
           <button type="button" data-f="all" aria-pressed="true">All</button>
           <button type="button" data-f="live" aria-pressed="false">Launched</button>
           <button type="button" data-f="todo" aria-pressed="false">To come</button>
         </div>
-        <div class="legend" id="calLegend"></div>
       </div>
     </div>
-    <div class="lob-row" id="calLobs" role="group" aria-label="Line of business"></div>
-    <div class="cal-scroll" id="calScroll"><div class="cal-track" id="calTrack"></div></div>
+    <div class="cal-bar">
+      <div class="lob-row one-line" id="calLobs" role="group" aria-label="Line of business"></div>
+      <div class="legend" id="calLegend"></div>
+    </div>
+    <div class="cal-scroll" id="calScroll"><div id="calTrack"></div></div>
   </section>
 
   <!-- Campaign Calendar -->
   <section class="card cc" id="ccView" hidden aria-label="Campaign Calendar">
     <h2 class="cc-title" id="ccTitle">Marketing Campaign Launch Overview</h2>
-    <div class="cc-key" aria-hidden="true"><span><i class="old"></i>Existing campaign being retired / replaced</span><span><i class="new"></i>New, refreshed or continuing campaign</span></div>
-    <div class="lob-row" id="ccLobs" role="group" aria-label="Line of business"></div>
+    <div class="cc-key" aria-hidden="true"><span><i class="old"></i>Gray: retired when its new campaign launches</span><span><i class="new"></i>Blue: new or current campaign</span></div>
+    <div class="lob-row one-line" id="ccLobs" role="group" aria-label="Line of business" style="margin-bottom:14px"></div>
     <div class="cc-scroll"><div class="cc-grid" id="ccGrid"></div></div>
-    <p class="cc-hint">Bars run from launch until a campaign is retired. To show a retirement, open the new campaign and tick what it <b>Replaces</b>: the old one then ends the month before the new one launches, and they share a row. A campaign can also be given its own <b>Retire in</b> month.</p>
   </section>
 
   <div id="dashView" hidden>
@@ -584,31 +655,36 @@
       <div class="note">Launched campaigns</div>
     </div>
     <div class="card kpi">
+      <div class="label"><span class="dot" style="background:var(--st-progress)"></span>In progress</div>
+      <div class="value" id="kProgress">0</div>
+      <div class="note">Being built now</div>
+    </div>
+    <div class="card kpi">
       <div class="label"><span class="dot" style="background:var(--st-risk)"></span>Past target</div>
       <div class="value" id="kRisk">0</div>
       <div class="note">Launch passed, not live</div>
-    </div>
-    <div class="card kpi">
-      <div class="label">Next launch</div>
-      <div class="value small" id="kNext">—</div>
-      <div class="note" id="kNextNote">Nothing scheduled</div>
     </div>
   </section>
 
   <!-- Filters -->
   <section class="card filters" id="filters" aria-label="Filters">
     <div class="filter-head">
-      <input class="search" id="search" type="search" placeholder="Search name, description, owner…" aria-label="Search campaigns">
-      <select class="ctl" id="windowSel" aria-label="Launch window">
-        <option value="all">All launch months</option>
-        <option value="thismonth">This month</option>
-        <option value="thisquarter">This quarter</option>
-        <option value="nextquarter">Next quarter</option>
-        <option value="overdue">Past target</option>
-      </select>
-      <span class="active-count" id="activeCount"></span>
-      <button class="btn ghost" id="resetFilters">Reset</button>
-      <button class="btn ghost" id="toggleFilters" aria-expanded="true">Hide toggles</button>
+      <div class="fh-title">
+        <h2>Filter campaigns</h2>
+        <span class="active-count" id="activeCount"></span>
+      </div>
+      <div class="fh-tools">
+        <input class="search" id="search" type="search" placeholder="Search name, description, owner…" aria-label="Search campaigns">
+        <select class="ctl" id="windowSel" aria-label="Launch window">
+          <option value="all">All launch months</option>
+          <option value="thismonth">This month</option>
+          <option value="thisquarter">This quarter</option>
+          <option value="nextquarter">Next quarter</option>
+          <option value="overdue">Past target</option>
+        </select>
+        <button class="btn ghost" id="resetFilters" hidden>Reset</button>
+        <button class="btn ghost" id="toggleFilters" aria-expanded="true">Hide filters</button>
+      </div>
     </div>
     <div class="filter-groups" id="filterGroups"></div>
   </section>
@@ -640,12 +716,20 @@
   <section class="card list-card">
     <div class="list-head">
       <h2><span id="listTitle">Campaigns</span><span class="count" id="listCount"></span></h2>
-      <select class="ctl" id="groupSel" aria-label="Group list by">
-        <option value="none">No grouping</option>
-        <option value="lob">Group by LoB</option>
-        <option value="status">Group by status</option>
-        <option value="quarter">Group by launch quarter</option>
-      </select>
+      <div class="list-tools">
+        <select class="ctl" id="sortSel" aria-label="Sort by">
+          <option value="date">Sort: launch date</option>
+          <option value="name">Sort: name</option>
+          <option value="lob">Sort: line of business</option>
+          <option value="status">Sort: status</option>
+        </select>
+        <select class="ctl" id="groupSel" aria-label="Group list by">
+          <option value="quarter">Group: launch quarter</option>
+          <option value="lob">Group: line of business</option>
+          <option value="status">Group: status</option>
+          <option value="none">No grouping</option>
+        </select>
+      </div>
     </div>
     <div id="listBody"></div>
   </section>
@@ -720,6 +804,12 @@
         <div class="err">Pick an estimated launch month or quarter.</div>
       </div>
 
+      <div class="field span2" id="fLink">
+        <label for="link" id="linkLabel">Campaign link <span class="hint">(required once it’s live)</span></label>
+        <input type="url" id="link" name="link" placeholder="https://…" autocomplete="off">
+        <div class="err">Add the campaign page’s link (https://…). Live campaigns need one.</div>
+      </div>
+
       <div class="field span2">
         <span class="lbl">Replaces <span class="hint">(optional: campaigns this one retires, shown on the Campaign Calendar)</span></span>
         <div class="rep-list" id="repList"></div>
@@ -762,6 +852,23 @@
   <p class="ask-body" id="askMsg"></p>
   <div class="dlg-foot" id="askBtns"></div>
 </dialog>
+<dialog id="linkDlg" aria-labelledby="linkTitle">
+  <form id="linkForm" novalidate>
+    <div class="dlg-head"><h2 id="linkTitle">Mark live</h2></div>
+    <div class="ask-body">
+      <p id="linkMsg"></p>
+      <div class="field" id="fLinkQuick">
+        <label for="linkQuick">Campaign link</label>
+        <input type="url" id="linkQuick" placeholder="https://…" autocomplete="off">
+        <div class="err">Add the campaign page’s link (https://…).</div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn" data-lclose>Cancel</button>
+      <button type="submit" class="btn primary">Mark live</button>
+    </div>
+  </form>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -795,6 +902,7 @@
 
   let campaigns = [];
   const BASE_YEARS = [2026, 2027];
+  const VIS_FROM = BASE_YEARS[0]; // earlier years stay in the data but get no tab or calendar columns
   // Launch is stored as "YYYY-MM" (a month) or "YYYY-Qn" (a quarter).
   const parseLaunch = s => {
     let m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(s || '');
@@ -816,10 +924,10 @@
   let col = null, ext = null, canWrite = true, downloads = null;
   const saveLocal = () => { if (!col && !ext) setNote(store.set(STORE_KEY, { version: 1, campaigns })); };
   const setNote = ok => {
-    $('#storageNote').textContent = ext
-      ? 'Campaigns are saved online and shared with everyone who opens this page.'
+    // Only unusual situations get a note; the normal shared setup needs no explanation.
+    $('#storageNote').textContent = ext ? ''
       : col
-      ? (canWrite ? 'Campaigns are saved to this dashboard and shared with everyone who opens it.' : 'You have view-only access to this dashboard.')
+      ? (canWrite ? '' : 'You have view-only access to this dashboard.')
       : ok ? 'Shared storage isn’t available in this view, so campaigns are saved in this browser only.'
            : 'Storage is unavailable here, so changes last only until you close this tab.';
   };
@@ -876,6 +984,13 @@
   };
   const uid = () => 'c_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const splitList = s => [...new Set(String(s || '').split(',').map(x => x.trim()).filter(Boolean))];
+  // Campaign page links: accept "www.site.com/x" and add https://; only http(s) links are kept.
+  const cleanUrl = v => {
+    let u = String(v || '').trim();
+    if (!u) return '';
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+    try { const x = new URL(u); return /^https?:$/.test(x.protocol) && x.hostname.includes('.') ? x.href : ''; } catch { return ''; }
+  };
   const today = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
   const launchLabel = s => { const L = parseLaunch(s); return !L ? '' : L.kind === 'month' ? `${MONTHS[L.m]} ${L.y}` : `Q${L.q} ${L.y}`; };
   const launchStartMonth = L => L.kind === 'month' ? L.m : (L.q - 1) * 3;
@@ -925,6 +1040,7 @@
       notes: String(c.notes || ''),
       replaces: arr(c.replaces).filter(x => x !== c.id),
       retire: /^\d{4}-(0[1-9]|1[0-2])$/.test(c.retire || '') ? c.retire : '',
+      link: cleanUrl(c.link),
       createdAt: c.createdAt || new Date().toISOString(),
       updatedAt: c.updatedAt || new Date().toISOString()
     };
@@ -961,7 +1077,7 @@
     return true;
   }
   // ---------- Year tabs ----------
-  const allYears = () => [...new Set([...BASE_YEARS, prefs.year, ...campaigns.map(c => c.year)].filter(Number.isInteger))].sort((a, b) => a - b);
+  const allYears = () => [...new Set([...BASE_YEARS, prefs.year, ...campaigns.map(c => c.year)].filter(y => Number.isInteger(y) && y >= VIS_FROM))].sort((a, b) => a - b);
   const inYear = () => campaigns.filter(c => c.year === prefs.year);
   function renderTabs() {
     const years = allYears();
@@ -997,20 +1113,19 @@
     });
   }
 
+  // Line of business gets its own full-width panel; the smaller groups sit side by side under it.
+  const FILTER_LAYOUT = [['lob'], ['status', 'newRefresh', 'type', 'segment', 'motion']];
   function renderFilters() {
-    const box = $('#filterGroups');
-    box.replaceChildren();
     let offTotal = 0;
-    for (const g of GROUPS) {
+    const panel = g => {
       const off = offSet(g.key);
       const pool = filtered({ except: g.key });
       let values = g.values();
-      const hasEmpty = g.emptyLabel && campaigns.some(c => !g.of(c).length);
-      if (hasEmpty) values = [...values, g.emptyLabel];
+      if (g.emptyLabel && campaigns.some(c => !g.of(c).length)) values = [...values, g.emptyLabel];
       // drop stale "off" entries that no longer exist
       prefs.off[g.key] = [...off].filter(v => values.includes(v));
-      offTotal += prefs.off[g.key].length;
-
+      const hidden = prefs.off[g.key].length;
+      offTotal += hidden;
       const chips = el('div', { class: 'chips' });
       if (!values.length) chips.append(el('span', { class: 'empty-chips' }, 'None yet'));
       for (const v of values) {
@@ -1018,21 +1133,28 @@
         const n = pool.filter(c => v === g.emptyLabel ? !g.of(c).length : g.of(c).includes(v)).length;
         const dot = g.key === 'status' ? el('span', { class: 'dot', style: `background:${statusOf(v).color}` }) : null;
         chips.append(el('button', {
-          type: 'button', class: 'chip', 'aria-pressed': String(on),
-          title: on ? `Hide ${v}` : `Show ${v}`,
-          onclick: () => { toggle(g.key, v); }
-        }, el('span', { class: 'ck', 'aria-hidden': 'true' }), dot, v, el('span', { class: 'n' }, n)));
+          type: 'button', class: 'chip' + (n ? '' : ' zero'), 'aria-pressed': String(on),
+          title: on ? `Hide ${v}` : `Show ${v}`, onclick: () => toggle(g.key, v)
+        }, el('span', { class: 'ck', 'aria-hidden': 'true' }), dot, el('span', { class: 'cl' }, v), el('span', { class: 'n' }, n)));
       }
-      box.append(el('div', {},
-        el('div', { class: 'fg-title' },
-          el('span', {}, g.label),
-          values.length ? el('button', { type: 'button', onclick: () => setAll(g.key, values, true) }, 'All') : null,
-          values.length ? el('button', { type: 'button', onclick: () => setAll(g.key, values, false) }, 'None') : null),
-        chips));
-    }
-    const w = $('#windowSel').value !== 'all' ? 1 : 0;
-    const q = $('#search').value.trim() ? 1 : 0;
-    $('#activeCount').textContent = (offTotal + w + q) ? `${offTotal} toggled off${w ? ' · launch window' : ''}${q ? ' · search' : ''}` : '';
+      return el('div', { class: 'fpanel' },
+        el('div', { class: 'fp-head' },
+          el('span', { class: 'fp-title' }, g.label, hidden ? el('span', { class: 'fp-off' }, `${hidden} hidden`) : null),
+          values.length ? el('span', { class: 'fp-links' },
+            el('button', { type: 'button', onclick: () => setAll(g.key, values, true) }, 'All'),
+            el('button', { type: 'button', onclick: () => setAll(g.key, values, false) }, 'None')) : null),
+        chips);
+    };
+    const byKey = Object.fromEntries(GROUPS.map(g => [g.key, g]));
+    $('#filterGroups').replaceChildren(...FILTER_LAYOUT.map(keys =>
+      el('div', { class: 'frow' + (keys.length > 1 ? ' multi' : '') }, keys.map(k => panel(byKey[k])))));
+    const w = $('#windowSel').value !== 'all', q = !!$('#search').value.trim();
+    const parts = [`Showing ${filtered().length} of ${inYear().length} campaigns`];
+    if (offTotal) parts.push(`${offTotal} option${offTotal === 1 ? '' : 's'} hidden`);
+    if (w) parts.push('launch window set');
+    if (q) parts.push('search on');
+    $('#activeCount').textContent = parts.join(' · ');
+    $('#resetFilters').hidden = !(offTotal || w || q);
   }
   function toggle(key, v) {
     const s = offSet(key);
@@ -1050,18 +1172,8 @@
     $('#kNew').textContent = list.filter(c => c.newRefresh === 'New').length;
     $('#kRefresh').textContent = list.filter(c => c.newRefresh === 'Refresh').length;
     $('#kLive').textContent = list.filter(c => c.status === 'Live').length;
+    $('#kProgress').textContent = list.filter(c => c.status === 'In Progress').length;
     $('#kRisk').textContent = list.filter(isOverdue).length;
-    const next = upcoming.filter(c => { const L = parseLaunch(c.launch); return L && launchEnd(L) > today(); })
-      .sort((a, b) => launchSortKey(a.launch) - launchSortKey(b.launch))[0];
-    if (next) {
-      const rel = relLaunch(parseLaunch(next.launch));
-      $('#kNext').textContent = next.name;
-      $('#kNext').title = next.name;
-      $('#kNextNote').textContent = launchLabel(next.launch) + (rel ? ` · ${rel}` : '');
-    } else {
-      $('#kNext').textContent = '—'; $('#kNext').title = '';
-      $('#kNextNote').textContent = 'Nothing scheduled';
-    }
   }
 
   // ---------- Tooltip ----------
@@ -1156,29 +1268,35 @@
   }
 
   // ---------- List ----------
-  const COLS = [
-    { key: 'name',   label: 'Campaign' },
-    { key: 'lob',    label: 'LoB' },
-    { key: 'status', label: 'Status' },
-    { key: 'date',   label: 'Launch' },
-    { key: 'newRefresh', label: 'New / Refresh' },
-    { key: 'type',   label: 'Type' },
-    { key: 'seg',    label: 'Segment · Motion', nosort: true },
-    { key: 'lang',   label: 'Languages', nosort: true },
-    { key: 'act',    label: '', nosort: true }
-  ];
+  const SORTS = ['date', 'name', 'lob', 'status'];
   function sortVal(c, key) {
     if (key === 'date') return launchSortKey(c.launch);
     if (key === 'status') return STATUSES.findIndex(s => s.id === c.status);
     return String(c[key] || '').toLowerCase();
   }
   function sorted(list) {
-    const { key, dir } = prefs.sort;
+    const key = SORTS.includes(prefs.sort.key) ? prefs.sort.key : 'date';
     return list.slice().sort((a, b) => {
       const x = sortVal(a, key), y = sortVal(b, key);
-      return (x < y ? -1 : x > y ? 1 : 0) * dir || a.name.localeCompare(b.name);
+      return (x < y ? -1 : x > y ? 1 : 0) || a.name.localeCompare(b.name);
     });
   }
+  const ICON = {
+    edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
+    trash: 'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6'
+  };
+  const iconBtn = (kind, label, onclick, cls = '') =>
+    el('button', { type: 'button', class: 'icon-act ' + cls, title: label, 'aria-label': label, onclick }, svgIcon(ICON[kind], 16));
+  // A campaign's name, as a link to its campaign page when one is set.
+  function campaignName(c, tag = 'b') {
+    if (!c.link) return el(tag, { class: 'cn' }, c.name);
+    return el('a', { class: 'clink cn', href: c.link, target: '_blank', rel: 'noopener noreferrer', title: 'Open the campaign page' },
+      c.name, el('span', { class: 'ext', 'aria-hidden': 'true' }, ' ↗'));
+  }
+  const mixText = items => {
+    const live = items.filter(c => c.status === 'Live').length;
+    return live === items.length ? 'all launched' : live ? `${live} launched · ${items.length - live} to come` : `${items.length} to come`;
+  };
 
   function renderList(list) {
     const host = $('#listBody');
@@ -1195,75 +1313,94 @@
     if (!list.length) {
       host.replaceChildren(el('div', { class: 'empty' },
         el('h3', {}, 'Nothing matches'),
-        el('p', {}, 'Every campaign is hidden by the current toggles, launch window or search.'),
+        el('p', {}, 'Every campaign is hidden by the current filters, launch window or search.'),
         el('button', { class: 'btn', type: 'button', onclick: resetFilters }, 'Reset filters')));
       return;
     }
-
-    const thead = el('thead', {}, el('tr', {}, COLS.map(col => {
-      if (col.nosort) return el('th', {}, col.label);
-      const on = prefs.sort.key === col.key;
-      return el('th', { class: on ? 'sorted' : '', 'aria-sort': on ? (prefs.sort.dir > 0 ? 'ascending' : 'descending') : 'none' },
-        el('button', { type: 'button', onclick: () => { prefs.sort = { key: col.key, dir: on ? -prefs.sort.dir : 1 }; savePrefs(); render(); } },
-          col.label, el('span', { class: 'arr', 'aria-hidden': 'true' }, on && prefs.sort.dir < 0 ? '↓' : '↑')));
-    })));
-    const tbody = el('tbody');
     const rows = sorted(list);
     const g = prefs.group;
-    if (g === 'none') rows.forEach(c => tbody.append(row(c)));
+    let sections;
+    if (g === 'none') sections = [{ key: null, items: rows }];
     else {
       const keyOf = c => g === 'lob' ? c.lob : g === 'status' ? c.status : quarterOf(c);
-      const order = [];
-      const map = {};
-      for (const c of rows) { const k = keyOf(c); if (!map[k]) { map[k] = []; order.push(k); } map[k].push(c); }
+      const map = new Map();
+      for (const c of rows) { const k = keyOf(c); if (!map.has(k)) map.set(k, []); map.get(k).push(c); }
+      let order = [...map.keys()];
       if (g === 'status') order.sort((a, b) => STATUSES.findIndex(s => s.id === a) - STATUSES.findIndex(s => s.id === b));
       else if (g === 'quarter') order.sort((a, b) => qSort(a).localeCompare(qSort(b)));
       else order.sort((a, b) => a.localeCompare(b));
-      for (const k of order) {
-        tbody.append(el('tr', { style: 'cursor:default' }, el('td', { colspan: COLS.length, style: 'background:var(--surface-2);font-weight:600;font-size:13px' },
-          g === 'status' ? el('span', { class: 'dot', style: `background:${statusOf(k).color};margin-right:8px` }) : null,
-          k, el('span', { style: 'color:var(--muted);font-weight:400;margin-left:8px' }, `${map[k].length}`))));
-        map[k].forEach(c => tbody.append(row(c)));
-      }
+      sections = order.map(k => ({ key: k, items: map.get(k) }));
     }
-    host.replaceChildren(el('div', { class: 'table-scroll' }, el('table', {}, thead, tbody)));
+    host.replaceChildren(...sections.map(sec => el('section', { class: 'lgroup' },
+      sec.key != null ? el('div', { class: 'lg-head' },
+        g === 'status' ? el('span', { class: 'dot', style: `background:${statusOf(sec.key).color}` }) : null,
+        el('b', {}, sec.key), el('span', { class: 'lg-n' }, sec.items.length),
+        el('span', { class: 'lg-mix' }, mixText(sec.items))) : null,
+      sec.items.map(listItem))));
   }
   const qSort = k => { const m = /^Q(\d) (\d{4})$/.exec(k); return m ? `${m[2]}-${m[1]}` : k === 'No date' ? 'zzzz' : 'zzz-' + k; };
 
-  function row(c) {
-    const s = statusOf(c.status);
-    const L = parseLaunch(c.launch);
-    const dateSub = !L ? '' : c.status === 'Live' ? 'Launched' : relLaunch(L);
-    const tr = el('tr', { tabindex: '0', onclick: e => { if (!e.target.closest('button')) openForm(c); }, onkeydown: e => { if (e.key === 'Enter' && e.target === tr) openForm(c); } },
-      el('td', { class: 'name-cell' }, el('b', {}, c.name), c.description ? el('small', {}, c.description) : null),
-      el('td', {}, c.lob),
-      el('td', {}, el('span', { class: 'pill' }, el('span', { class: 'dot', style: `background:${s.color}` }), c.status)),
-      el('td', { class: 'date-cell' },
-        L ? launchLabel(c.launch) : el('span', { style: 'color:var(--muted)' }, 'Not set'),
-        isOverdue(c) ? el('small', {}, el('span', { class: 'risk' }, '⚠ Past target')) : dateSub ? el('small', {}, dateSub) : null),
-      el('td', {}, c.newRefresh),
-      el('td', {}, c.type),
-      el('td', {}, [...c.segment, ...c.motion].map(x => el('span', { class: 'tag strong' }, x)), (!c.segment.length && !c.motion.length) ? el('span', { style: 'color:var(--muted)' }, '—') : null),
-      el('td', {}, c.languages.length ? el('span', { class: 'tag', title: 'Language versions' }, c.languages.join(', ')) : el('span', { style: 'color:var(--muted)' }, '—')),
-      el('td', {}, el('div', { class: 'row-actions' },
-        c.status !== 'Live' && canWrite ? el('button', { class: 'btn live-btn', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, '✓ Mark live') : null,
-        el('button', { class: 'btn ghost', type: 'button', onclick: () => openForm(c) }, canWrite ? 'Edit' : 'View'),
-        canWrite ? el('button', { class: 'btn ghost del', type: 'button', title: 'Delete campaign', onclick: () => deleteCampaign(c) }, 'Delete') : null))
-    );
-    return tr;
+  function listItem(c) {
+    const s = statusOf(c.status), L = parseLaunch(c.launch);
+    const sub = !L ? '' : c.status === 'Live' ? 'Launched' : relLaunch(L);
+    const tags = [
+      el('span', { class: 'tag strong' }, c.lob),
+      el('span', { class: 'tag' }, c.newRefresh === 'Refresh' ? 'Refresh' : 'Net new'),
+      isEiab(c) ? el('span', { class: 'tag' }, 'Campaign in a Box') : null,
+      ...[...c.segment, ...c.motion].map(x => el('span', { class: 'tag' }, x)),
+      c.languages.length ? el('span', { class: 'tag', title: c.languages.join(', ') }, c.languages.length === 1 ? c.languages[0] : `${c.languages.length} languages`) : null,
+      c.status === 'Live' && !c.link ? el('span', { class: 'tag warn' }, 'Link missing') : null
+    ];
+    return el('div', {
+      class: 'ci', style: `--sc:${s.color}`, tabindex: '0',
+      onclick: e => { if (!e.target.closest('a, button')) openForm(c); },
+      onkeydown: e => { if (e.key === 'Enter' && e.target === e.currentTarget) openForm(c); }
+    },
+      el('div', { class: 'ci-main' },
+        el('div', { class: 'ci-name' }, campaignName(c, 'span')),
+        c.description ? el('div', { class: 'ci-desc' }, c.description) : null,
+        el('div', { class: 'ci-tags' }, tags)),
+      el('div', { class: 'ci-when' },
+        el('b', {}, L ? launchLabel(c.launch) : 'Not set'),
+        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : sub ? el('span', {}, sub) : null),
+      el('div', { class: 'ci-status' }, el('span', { class: 'spill' }, el('span', { class: 'dot', style: `background:${s.color}` }), c.status)),
+      el('div', { class: 'ci-act' },
+        c.status !== 'Live' && canWrite ? el('button', { class: 'live-btn', type: 'button', title: 'Mark as live', onclick: () => markLive(c) }, '✓ Mark live') : null,
+        iconBtn('edit', canWrite ? 'Edit campaign' : 'View campaign', () => openForm(c)),
+        canWrite ? iconBtn('trash', 'Delete campaign', () => deleteCampaign(c), 'del') : null));
   }
-  function svgIcon(d) {
+  function svgIcon(d, size = 26) {
     const ns = 'http://www.w3.org/2000/svg';
     const s = document.createElementNS(ns, 'svg');
-    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', '26'); s.setAttribute('height', '26');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', size); s.setAttribute('height', size);
     s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
     const p = document.createElementNS(ns, 'path'); p.setAttribute('d', d); s.append(p);
     return s;
   }
 
-  // One click: status becomes Live and, unless it already has a past or current month, the launch becomes this month.
-  function markLive(c) {
-    const prev = { status: c.status, launch: c.launch, year: c.year, updatedAt: c.updatedAt };
+  // Marking live needs the campaign's link; if it has none yet, ask for it first.
+  function askLink(c) {
+    const d = $('#linkDlg'), inp = $('#linkQuick'), fld = $('#fLinkQuick');
+    $('#linkMsg').textContent = `Add the link to “${c.name}” so people can open the campaign page from the dashboard.`;
+    inp.value = ''; fld.classList.remove('invalid');
+    return new Promise(resolve => {
+      let done = false;
+      const finish = v => { if (!done) { done = true; resolve(v); } };
+      $('#linkForm').onsubmit = e => {
+        e.preventDefault();
+        const v = cleanUrl(inp.value);
+        if (!v) { fld.classList.add('invalid'); inp.focus(); return; }
+        finish(v); d.close();
+      };
+      d.querySelector('[data-lclose]').onclick = () => d.close();
+      d.onclose = () => finish(null);
+      d.showModal(); inp.focus();
+    });
+  }
+  // Status becomes Live and, unless it already has a past or current month, the launch becomes this month.
+  async function markLive(c) {
+    const prev = { status: c.status, launch: c.launch, year: c.year, link: c.link, updatedAt: c.updatedAt };
+    if (!c.link) { const link = await askLink(c); if (!link) return; c.link = link; }
     c.status = 'Live';
     const t = today(), L = parseLaunch(c.launch);
     if (!L || L.kind === 'quarter' || monthsAway(L) > 0) { c.launch = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}`; c.year = t.getFullYear(); }
@@ -1323,6 +1460,7 @@
     const st = form.status.value;
     $('#statusHelp').textContent = statusOf(st).help;
     $('#dateLabel').textContent = st === 'Live' ? 'Launched in' : 'Estimated launch';
+    $('#linkLabel .hint').textContent = st === 'Live' ? '(required)' : '(required once it’s live)';
   }
 
   function openForm(c) {
@@ -1347,6 +1485,7 @@
     form.languages.value = (v.languages || []).join(', ');
     form.owner.value = v.owner || '';
     form.notes.value = v.notes || '';
+    form.link.value = v.link || '';
     form.querySelectorAll('input[name=segment]').forEach(i => i.checked = v.segment.includes(i.value));
     form.querySelectorAll('input[name=motion]').forEach(i => i.checked = v.motion.includes(i.value));
     syncStatusUI();
@@ -1374,11 +1513,13 @@
     flag('#fName', !name);
     flag('#fLob', !lob);
     flag('#fDate', !parseLaunch(launch));
+    const linkRaw = form.link.value.trim(), link = cleanUrl(linkRaw);
+    flag('#fLink', (status === 'Live' && !link) || (!!linkRaw && !link));
     if (!ok) { form.querySelector('.field.invalid input, .field.invalid select, .field.invalid textarea')?.focus(); return; }
 
     const data = normalize({
       id: editingId || undefined,
-      name, lob, status, launch,
+      name, lob, status, launch, link,
       description: form.description.value.trim(),
       type: form.type.value,
       newRefresh: form.newRefresh.value,
@@ -1401,7 +1542,7 @@
       const vals = g.of(data);
       if (vals.length && vals.every(v => off.has(v))) { vals.forEach(v => off.delete(v)); prefs.off[g.key] = [...off]; }
     }
-    if (data.year !== prefs.year) { prefs.year = data.year; try { history.replaceState(null, '', '#y' + data.year); } catch {} }
+    if (data.year !== prefs.year && data.year >= VIS_FROM) { prefs.year = data.year; try { history.replaceState(null, '', '#y' + data.year); } catch {} }
     savePrefs();
     const wasEdit = !!editingId;
     dlg.close(); render();
@@ -1419,7 +1560,9 @@
   $('#liveBtn').addEventListener('click', () => {
     const c = campaigns.find(x => x.id === editingId);
     if (!c) return;
+    const typed = cleanUrl(form.link.value);
     dlg.close();
+    if (typed && !c.link) c.link = typed;
     markLive(c);
   });
   $('#deleteBtn').addEventListener('click', () => {
@@ -1457,8 +1600,8 @@
     if (act === 'export-json') {
       download(`campaigns-${stamp()}.json`, JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), campaigns }, null, 2), 'application/json');
     } else if (act === 'export-csv') {
-      const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Owner', 'Notes'];
-      const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, launchLabel(c.launch), c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.owner, c.notes].map(v => csvCell(String(v))).join(','));
+      const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Owner', 'Notes', 'Link'];
+      const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, launchLabel(c.launch), c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.owner, c.notes, c.link].map(v => csvCell(String(v))).join(','));
       download(`campaigns-${prefs.year}-${stamp()}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
     } else if (act === 'import') {
       $('#importFile').click();
@@ -1508,12 +1651,13 @@
   $('#resetFilters').addEventListener('click', resetFilters);
   $('#search').addEventListener('input', render);
   $('#windowSel').addEventListener('change', render);
-  $('#groupSel').addEventListener('change', e => { prefs.group = e.target.value; savePrefs(); render(); });
+  $('#groupSel').addEventListener('change', e => { prefs.group = prefs.groupV2 = e.target.value; savePrefs(); render(); });
+  $('#sortSel').addEventListener('change', e => { prefs.sort = { key: e.target.value, dir: 1 }; savePrefs(); render(); });
   $('#addBtn').addEventListener('click', () => openForm());
   $('#toggleFilters').addEventListener('click', () => { prefs.collapsed = !prefs.collapsed; savePrefs(); applyCollapsed(); });
   function applyCollapsed() {
     $('#filters').classList.toggle('collapsed', prefs.collapsed);
-    $('#toggleFilters').textContent = prefs.collapsed ? 'Show toggles' : 'Hide toggles';
+    $('#toggleFilters').textContent = prefs.collapsed ? 'Show filters' : 'Hide filters';
     $('#toggleFilters').setAttribute('aria-expanded', String(!prefs.collapsed));
   }
 
@@ -1541,32 +1685,33 @@
     $('#exFoot').textContent = upBox ? `*${up.length - upBox} Campaigns, ${upBox} Campaigns in a Box` : '';
   }
   // ---------- Launch calendar ----------
-  // One continuous row of quarters across every year; LoB is a one-click choice above it.
+  // Month, quarter or week scale across every year from VIS_FROM on; LoB is a one-click choice above it.
   const ALL_LOBS = '*';
   let calScrolled = false;
-  function calChip(c) {
+  const calSort = (a, b) => launchSortKey(a.launch) - launchSortKey(b.launch) || STATUSES.findIndex(s => s.id === b.status) - STATUSES.findIndex(s => s.id === a.status) || a.name.localeCompare(b.name);
+  function calChip(c, opts = {}) {
     const st = c.status === 'Live' ? 's-live' : c.status === 'In Progress' ? 's-progress' : '';
     const lobAll = (prefs.calLob || ALL_LOBS) === ALL_LOBS;
     const L = parseLaunch(c.launch);
-    const mcls = L.kind === 'month' ? ' m' + (L.m % 3 + 1) : '';
-    return el('div', { class: 'cal-chip ' + st + mcls },
-      el('button', { type: 'button', class: 'cal-open', title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) },
-      el('b', {}, c.name),
+    const mcls = opts.tint && L.kind === 'month' ? ' m' + (L.m % 3 + 1) : '';
+    return el('div', { class: 'cal-chip ' + st + mcls, title: `${c.name} · ${c.lob} · ${launchLabel(c.launch)}`,
+      onclick: e => { if (!e.target.closest('a, button')) openForm(c); } },
+      campaignName(c, 'b'),
       el('small', {},
-        L.kind === 'month' ? el('span', { class: 'mtag' }, el('i', { 'aria-hidden': 'true' }), MONTHS[L.m]) : el('span', { class: 'mtag' }, 'Month TBD'),
-        el('span', {}, '·'),
+        opts.tint ? (L.kind === 'month' ? el('span', { class: 'mtag' }, el('i', { 'aria-hidden': 'true' }), MONTHS[L.m]) : el('span', { class: 'mtag' }, 'Month TBD')) : null,
+        opts.tint ? el('span', {}, '·') : null,
         c.status === 'Live' ? el('span', { class: 'ok', 'aria-hidden': 'true' }, '✓') : null,
         el('span', {}, c.status === 'Live' ? 'Launched' : c.status),
         lobAll ? el('span', {}, '· ' + c.lob) : null,
         isEiab(c) ? el('span', {}, '· in a Box') : null,
-        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null)),
+        isOverdue(c) ? el('span', { class: 'risk' }, '⚠ Past target') : null),
       c.status !== 'Live' && canWrite ? el('div', { class: 'cal-actions' },
         el('button', { type: 'button', class: 'live-btn', title: 'Mark this campaign as live', onclick: () => markLive(c) }, '✓ Mark live')) : null);
   }
   function renderCalendar() {
-    const f = prefs.calFilter || 'all', t = today();
+    const f = prefs.calFilter || 'all', scale = ['month', 'quarter', 'week'].includes(prefs.calScale) ? prefs.calScale : 'month', t = today();
     let lob = prefs.calLob || ALL_LOBS;
-    const dated = campaigns.filter(c => parseLaunch(c.launch));
+    const dated = campaigns.filter(c => { const L = parseLaunch(c.launch); return L && L.y >= VIS_FROM; });
     const lobs = uniq([...prefs.lobs, ...dated.map(c => c.lob)]).sort((a, b) => a.localeCompare(b));
     if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = prefs.calLob = ALL_LOBS;
     const lobBtn = (v, label, n) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
@@ -1574,43 +1719,107 @@
     $('#calLobs').replaceChildren(lobBtn(ALL_LOBS, 'All LoBs', dated.length), ...lobs.map(l => lobBtn(l, l, dated.filter(c => c.lob === l).length)));
 
     const scoped = dated.filter(c => lob === ALL_LOBS || c.lob === lob);
-    const items = scoped.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live'));
+    const items = scoped.filter(c => f === 'all' || (f === 'live' ? c.status === 'Live' : c.status !== 'Live')).sort(calSort);
     const nLive = scoped.filter(c => c.status === 'Live').length;
     $('#calTitle').textContent = `${lob === ALL_LOBS ? 'All LoBs' : lob} · launch calendar`;
-    $('#calSub').textContent = scoped.length ? `${nLive} launched · ${scoped.length - nLive} to come` : 'No campaigns for this LoB yet';
+    $('#calSub').textContent = (scoped.length ? `${nLive} launched · ${scoped.length - nLive} to come` : 'No campaigns for this LoB yet')
+      + (scale === 'week' && scoped.length ? ' · bars cover the launch month, or the whole quarter if the month isn’t set' : '');
     document.querySelectorAll('#calFilter button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+    document.querySelectorAll('#calScale button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === scale)));
     $('#calLegend').replaceChildren(...STATUSES.map(s => el('span', {}, el('i', { style: `background:${s.color}` }), s.id === 'Live' ? 'Launched' : s.id)));
 
-    // Quarters from the first year with campaigns (or the first tab year) through the last.
-    const years = [...new Set([...BASE_YEARS, ...dated.map(c => parseLaunch(c.launch).y)])].sort((a, b) => a - b);
+    const years = [...new Set([...BASE_YEARS, ...dated.map(c => parseLaunch(c.launch).y)])].filter(y => y >= VIS_FROM).sort((a, b) => a - b);
+    const empty = f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : '';
+    const track = scale === 'quarter' ? calQuarters(items, years, t, empty) : scale === 'week' ? calWeeks(items, years, t) : calMonths(items, years, t, empty);
+    $('#calTrack').replaceChildren(track);
+    // On first show, scroll so the current period sits near the left.
+    // The week timeline is rebuilt on every render, so it re-centers on today each time.
+    if ((!calScrolled || scale === 'week') && !$('#calView').hidden) {
+      calScrolled = true;
+      const sc = scale === 'week' ? $('#calTrack .cw-right') : $('#calScroll'), now = $('#calTrack .now');
+      if (sc && now) requestAnimationFrame(() => {
+        const x = now.getBoundingClientRect().left - sc.getBoundingClientRect().left + sc.scrollLeft;
+        sc.style.scrollBehavior = 'auto'; sc.scrollLeft = Math.max(0, x - (scale === 'week' ? 180 : 220)); sc.style.scrollBehavior = '';
+      });
+    }
+  }
+  function calQuarters(items, years, t, empty) {
     const curY = t.getFullYear(), curQ = Math.floor(t.getMonth() / 3) + 1;
     const cols = [];
-    let nowCol = null;
     for (const y of years) for (const q of [1, 2, 3, 4]) {
       const inQ = items.filter(c => { const L = parseLaunch(c.launch); return L.y === y && L.q === q; });
-      // Earlier is first: known months in order, then campaigns with only a quarter.
-      inQ.sort((a, b) => launchSortKey(a.launch) - launchSortKey(b.launch) || a.name.localeCompare(b.name));
       const now = y === curY && q === curQ;
       const qm = MONTHS.slice((q - 1) * 3, q * 3);
-      const col = el('div', { class: 'cal-qcol' + (now ? ' now' : '') + (q === 1 && y !== years[0] ? ' newyear' : '') },
+      cols.push(el('div', { class: 'cal-qcol' + (now ? ' now' : '') + (q === 1 && y !== years[0] ? ' newyear' : '') },
         el('div', { class: 'cal-qhead' }, el('b', {}, `Q${q} ${y}`),
           el('span', {}, now ? el('span', { class: 'nowtag' }, 'Now · ') : null, `${qm[0]}–${qm[2]} · ${inQ.length}`)),
         inQ.length ? el('div', { class: 'mlegend', 'aria-hidden': 'true' },
           qm.map((m, i) => el('span', { class: 'm' + (i + 1) }, el('i'), m)),
           inQ.some(c => parseLaunch(c.launch).kind === 'quarter') ? el('span', { class: 'mq' }, el('i'), 'Month TBD') : null) : null,
-        inQ.length ? inQ.map(calChip) : el('div', { class: 'cal-empty' }, f === 'live' ? 'No launches' : f === 'todo' ? 'Nothing to come' : 'Nothing scheduled'));
-      if (now) nowCol = col;
-      cols.push(col);
+        inQ.length ? inQ.map(c => calChip(c, { tint: true })) : el('div', { class: 'cal-empty' }, empty || 'Nothing scheduled')));
     }
-    $('#calTrack').replaceChildren(...cols);
-    // On first show, scroll so the current quarter sits near the left.
-    if (!calScrolled && nowCol && !$('#calView').hidden) {
-      calScrolled = true;
-      const sc = $('#calScroll');
-      requestAnimationFrame(() => { sc.style.scrollBehavior = 'auto'; sc.scrollLeft = Math.max(0, nowCol.offsetLeft - sc.offsetLeft - 280); sc.style.scrollBehavior = ''; });
+    return el('div', { class: 'cal-track' }, cols);
+  }
+  function calMonths(items, years, t, empty) {
+    const grid = el('div', { class: 'cm-grid', style: `grid-template-columns:repeat(${years.length * 12}, minmax(200px, 1fr))` });
+    years.forEach((y, yi) => {
+      for (let m = 0; m < 12; m++) {
+        const col = yi * 12 + m + 1;
+        const list = items.filter(c => { const L = parseLaunch(c.launch); return L.y === y && L.kind === 'month' && L.m === m; });
+        const now = t.getFullYear() === y && t.getMonth() === m;
+        const ys = m === 0 && yi > 0 ? ' ystart' : '';
+        grid.append(
+          el('div', { class: 'cm-head' + (now ? ' now' : '') + ys, style: `grid-column:${col};grid-row:1` },
+            el('b', {}, MONTHS[m]), el('span', {}, now ? el('span', { class: 'nowtag' }, 'This month · ') : null, String(y)),
+            list.length ? el('span', { class: 'c' }, list.length) : null),
+          el('div', { class: 'cm-cell' + (now ? ' now' : '') + ys, style: `grid-column:${col};grid-row:2` },
+            list.length ? list.map(c => calChip(c)) : (empty ? el('div', { class: 'cal-empty' }, empty) : null)));
+      }
+      // Campaigns with only a quarter sit in a band under that quarter's three months.
+      for (let q = 1; q <= 4; q++) {
+        const qList = items.filter(c => { const L = parseLaunch(c.launch); return L.y === y && L.kind === 'quarter' && L.q === q; });
+        if (!qList.length) continue;
+        grid.append(el('div', { class: 'cm-band', style: `grid-column:${yi * 12 + (q - 1) * 3 + 1} / span 3;grid-row:3` },
+          el('div', { class: 'cm-band-head' }, `Q${q} ${y} · month not set yet`, el('span', {}, `· ${qList.length}`)),
+          el('div', { class: 'cm-band-items' }, qList.map(c => calChip(c)))));
+      }
+    });
+    return grid;
+  }
+  function calWeeks(items, years, t) {
+    const DAY = 864e5, y0 = years[0], y1 = years[years.length - 1];
+    const start = new Date(y0, 0, 1); start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); // Monday on or before Jan 1
+    const W = Math.floor((new Date(y1, 11, 31) - start) / (7 * DAY)) + 1;
+    const wk = d => Math.floor((d - start) / (7 * DAY));
+    const monday = w => new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7 * w);
+    const grid = el('div', { class: 'cw-grid', style: `grid-template-columns:repeat(${W}, 30px)` });
+    const left = el('div', { class: 'cw-left' }, el('div', { class: 'cw-corner' }, 'Campaign'));
+    // Month labels span the weeks whose Monday falls in that month.
+    let w = 0;
+    while (w < W) {
+      const d = monday(w), y = d.getFullYear(), m = d.getMonth();
+      let e = w; while (e + 1 < W && monday(e + 1).getMonth() === m && monday(e + 1).getFullYear() === y) e++;
+      grid.append(el('div', { class: 'cw-month', style: `grid-column:${w + 1} / ${e + 2};grid-row:1` }, `${MONTHS[m]}${m === 0 || w === 0 ? ' ' + y : ''}`));
+      w = e + 1;
     }
+    const nowW = wk(t);
+    for (let i = 0; i < W; i++) grid.append(el('div', { class: 'cw-week' + (i === nowW ? ' now' : ''), style: `grid-column:${i + 1};grid-row:2` }, monday(i).getDate()));
+    items.forEach((c, i) => {
+      const L = parseLaunch(c.launch), row = i + 3, s = statusOf(c.status);
+      const a = wk(new Date(L.y, L.kind === 'month' ? L.m : (L.q - 1) * 3, 1));
+      const b = wk(new Date(L.y, L.kind === 'month' ? L.m + 1 : L.q * 3, 0));
+      left.append(el('div', { class: 'cw-name' }, campaignName(c, 'span'),
+        el('small', {}, `${c.lob} · ${c.status === 'Live' ? 'Launched' : c.status}`)));
+      grid.append(
+        el('button', { type: 'button', class: 'cw-bar' + (L.kind === 'quarter' ? ' q' : ''), style: `--sc:${s.color};grid-column:${a + 1} / ${b + 2};grid-row:${row}`,
+          title: `${c.name} · ${launchLabel(c.launch)}`, onclick: () => openForm(c) }, launchLabel(c.launch)));
+    });
+    if (!items.length) left.append(el('div', { class: 'cw-name cal-empty' }, 'No campaigns to show.'));
+    if (nowW >= 0 && nowW < W) grid.append(el('div', { class: 'cw-now', style: `grid-column:${nowW + 1};grid-row:1 / span ${Math.max(items.length, 1) + 2}` }));
+    return el('div', { class: 'cw-wrap' }, left, el('div', { class: 'cw-right' }, grid));
   }
   document.querySelectorAll('#calFilter button').forEach(b => b.addEventListener('click', () => { prefs.calFilter = b.dataset.f; savePrefs(); renderCalendar(); }));
+  document.querySelectorAll('#calScale button').forEach(b => b.addEventListener('click', () => { prefs.calScale = b.dataset.s; savePrefs(); calScrolled = false; renderCalendar(); }));
 
   // ---------- Campaign Calendar ----------
   // Per-LoB view of the year: retiring campaigns on the left, their replacements continuing to the right.
@@ -1622,7 +1831,7 @@
     if (!lob || (lob !== ALL_LOBS && !lobs.includes(lob))) lob = (prefs.calLob && lobs.includes(prefs.calLob)) ? prefs.calLob : (lobs[0] || ALL_LOBS);
     const lobBtn = (v, label) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
       onclick: () => { prefs.ccLob = v; savePrefs(); renderCampaignCal(); } }, label);
-    $('#ccLobs').replaceChildren(...lobs.map(l => lobBtn(l, l)), lobBtn(ALL_LOBS, 'All LoBs'));
+    $('#ccLobs').replaceChildren(lobBtn(ALL_LOBS, 'All LoBs'), ...lobs.map(l => lobBtn(l, l)));
     $('#ccTitle').textContent = `FY${String(y).slice(2)} ${lob === ALL_LOBS ? '' : lob + ' '}Marketing Campaign Launch Overview`;
 
     const scope = dated.filter(c => lob === ALL_LOBS || c.lob === lob);
@@ -1664,10 +1873,11 @@
       const L = parseLaunch(c.launch);
       const when = startAbs(c) >= Y0 ? `${c.status === 'Live' ? 'Launched' : 'Planned'} ${L.kind === 'month' ? MONTHS[L.m] : 'Q' + L.q}` : `In market before ${y}`;
       const ends = endAbs(c) <= Y11 ? ` · ends ${MONTHS[endAbs(c) - Y0]}` : '';
-      return el('button', { type: 'button', class: cls, style: `grid-column:${st - Y0 + 1} / ${en - Y0 + 2};grid-row:${row} / span ${span}`,
-        title: `${lb}: ${c.name} (${c.lob})`, onclick: () => openForm(c) },
-        el('span', {}, el('b', {}, lb + ': '), el('u', {}, c.name)),
-        el('small', {}, when + ends + (isEiab(c) ? ' · in a Box' : '') + (lob === ALL_LOBS ? '' : '')));
+      // The name opens the campaign page (when a link is set); the pencil opens the campaign for editing.
+      return el('div', { class: cls, style: `grid-column:${st - Y0 + 1} / ${en - Y0 + 2};grid-row:${row} / span ${span}`, title: `${lb}: ${c.name} (${c.lob})` },
+        el('span', {}, el('b', {}, lb + ': '), campaignName(c, 'span')),
+        el('small', {}, when + ends + (isEiab(c) ? ' · in a Box' : '')),
+        el('button', { type: 'button', class: 'cc-edit', title: 'Edit campaign', 'aria-label': `Edit ${c.name}`, onclick: () => openForm(c) }, svgIcon(ICON.edit, 14)));
     };
     let row = 2, lastLob = null;
     for (const g of groups) {
@@ -1713,7 +1923,11 @@
     const hashYear = /^#y(\d{4})$/.exec(location.hash || '');
     if (hashYear) prefs.year = +hashYear[1];
     if (!Number.isInteger(prefs.year)) prefs.year = BASE_YEARS.includes(new Date().getFullYear()) ? new Date().getFullYear() : BASE_YEARS[0];
+    if (prefs.year < VIS_FROM) prefs.year = VIS_FROM;
+    if (!['quarter', 'lob', 'status', 'none'].includes(prefs.groupV2)) prefs.groupV2 = 'quarter';
+    prefs.group = prefs.groupV2;
     $('#groupSel').value = prefs.group;
+    $('#sortSel').value = SORTS.includes(prefs.sort.key) ? prefs.sort.key : 'date';
     // Exec summary is the landing view; #calendar / #dashboard link straight to the others.
     if (location.hash === '#dashboard') prefs.view2 = 'dash';
     if (location.hash === '#calendar') prefs.view2 = 'cal';
