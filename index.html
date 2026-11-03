@@ -513,6 +513,9 @@
   .toast-btn { background: none; border: 0; color: var(--bg); font-weight: 700; text-decoration: underline; margin-left: 14px; cursor: pointer; padding: 0; }
   .row-actions .btn.del { color: var(--st-risk); }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .help-note { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .help-note a { color: var(--accent); font-weight: 600; user-select: all; }
+  .help-note .btn { height: 28px; padding: 0 10px; font-size: 12px; }
   footer.note { margin-top: 20px; font-size: 12px; color: var(--muted); }
 </style>
 </head>
@@ -716,6 +719,11 @@
   </div>
 
   <footer class="note" id="storageNote"></footer>
+  <p class="help-note">
+    <span>Run into a problem? Contact</span>
+    <a href="mailto:jake.scalzo@sap.com" id="helpEmail">jake.scalzo@sap.com</a>
+    <button type="button" class="btn" id="copyEmail">Copy email</button>
+  </p>
 </div>
 
 <!-- Add / edit dialog -->
@@ -1626,6 +1634,17 @@
     } catch { toast('Couldn’t read that file — is it a campaigns .json export?'); }
   });
 
+
+  // ---------- Help contact ----------
+  $('#copyEmail').addEventListener('click', async () => {
+    const addr = $('#helpEmail').textContent;
+    try { await navigator.clipboard.writeText(addr); toast('Email address copied'); }
+    catch {
+      const r = document.createRange(); r.selectNodeContents($('#helpEmail'));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      toast('Address selected. Press Ctrl+C (or ⌘C) to copy it.');
+    }
+  });
 
   // ---------- Misc controls ----------
   function resetFilters() {
