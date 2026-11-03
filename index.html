@@ -772,8 +772,8 @@
   const STORE_KEY = 'campaignPipeline.v1';
   const PREF_KEY = 'campaignPipeline.prefs.v1';
   const DEFAULT_LOBS = [
-    'AI/Joule', 'Autonomous Enterprise', 'BTP/BDC', 'Cloud ERP Private', 'Cloud ERP Public',
-    'CX', 'F&SM', 'HCM', 'SAP Business One', 'SCM', 'Sovereign Cloud', 'Sustainability'
+    'AI/Joule', 'Autonomous Enterprise', 'BAIP', 'Cloud ERP Private', 'Cloud ERP Public',
+    'CX', 'F&SM', 'HCM', 'LeanIX', 'SAP Business One', 'SCM', 'Signavio', 'Sovereign Cloud', 'Sustainability'
   ];
   const TYPES = ['Campaign', 'Campaign in a Box'];
   const SEGMENTS = ['Corporate', 'Enterprise'];
@@ -803,6 +803,13 @@
     return m ? { y: +m[1], kind: 'quarter', q: +m[2] } : null;
   };
   const prefs = Object.assign({ lobs: DEFAULT_LOBS.slice(), off: {}, group: 'none', sort: { key: 'date', dir: 1 }, collapsed: false }, store.get(PREF_KEY) || {});
+  // Renamed LoBs, and LoBs added since a browser last saved its list, carry over to saved preferences.
+  const LOB_RENAMES = { 'BTP/BDC': 'BAIP' };
+  const renameLob = l => LOB_RENAMES[l] || l;
+  prefs.lobs = uniq([...DEFAULT_LOBS, ...(prefs.lobs || []).map(renameLob)]);
+  if (prefs.off && prefs.off.lob) prefs.off.lob = uniq(prefs.off.lob.map(renameLob));
+  if (prefs.calLob) prefs.calLob = renameLob(prefs.calLob);
+  if (prefs.ccLob) prefs.ccLob = renameLob(prefs.ccLob);
   // Campaigns live in the artifact's shared database (collection "campaigns", one doc per campaign).
   // If the database isn't available in this view, fall back to this browser's storage.
   // A page hosted outside claude.ai can supply its own shared store as window.FLC_BACKEND (see the GitHub build).
@@ -905,7 +912,7 @@
       id: c.id || uid(),
       name: String(c.name || '').trim(),
       description: String(c.description || ''),
-      lob: String(c.lob || '').trim() || 'Unassigned',
+      lob: renameLob(String(c.lob || '').trim()) || 'Unassigned',
       type: /box/i.test(c.type || '') ? 'Campaign in a Box' : 'Campaign',
       newRefresh: NEW_REFRESH.includes(c.newRefresh) ? c.newRefresh : 'New',
       segment: arr(c.segment).filter(x => SEGMENTS.includes(x)),
@@ -1560,7 +1567,7 @@
     const f = prefs.calFilter || 'all', t = today();
     let lob = prefs.calLob || ALL_LOBS;
     const dated = campaigns.filter(c => parseLaunch(c.launch));
-    const lobs = uniq(dated.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
+    const lobs = uniq([...prefs.lobs, ...dated.map(c => c.lob)]).sort((a, b) => a.localeCompare(b));
     if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = prefs.calLob = ALL_LOBS;
     const lobBtn = (v, label, n) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
       onclick: () => { prefs.calLob = v; savePrefs(); renderCalendar(); } }, label, el('span', { class: 'n' }, n));
@@ -1610,7 +1617,7 @@
   function renderCampaignCal() {
     const y = prefs.year, Y0 = y * 12, Y11 = y * 12 + 11, t = today();
     const dated = campaigns.filter(c => parseLaunch(c.launch));
-    const lobs = uniq(dated.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
+    const lobs = uniq([...prefs.lobs, ...dated.map(c => c.lob)]).sort((a, b) => a.localeCompare(b));
     let lob = prefs.ccLob;
     if (!lob || (lob !== ALL_LOBS && !lobs.includes(lob))) lob = (prefs.calLob && lobs.includes(prefs.calLob)) ? prefs.calLob : (lobs[0] || ALL_LOBS);
     const lobBtn = (v, label) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
