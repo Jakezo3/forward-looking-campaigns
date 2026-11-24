@@ -495,6 +495,34 @@
   .rep-list small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
   .rep-empty { font-size: 12px; color: var(--muted); padding: 8px; }
 
+  /* All content: every live campaign, grouped by LoB */
+  .lib { padding: 20px clamp(16px, 3vw, 28px) 24px; }
+  .lib-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; margin-bottom: 14px; }
+  .lib-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; }
+  .lib-head p { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+  .lib-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .lib-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .lib-check input { accent-color: var(--accent); }
+  .lib-sec { margin-top: 18px; }
+  .lib-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--border); }
+  .lib-sec-head h3 { font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; }
+  .lib-sec-head .lg-n { align-self: center; }
+  .lib-sec-head small { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+  .lib-card {
+    display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; min-width: 0;
+    border: 1px solid var(--border); border-top: 3px solid var(--cc-new-line); border-radius: 10px; background: var(--surface);
+  }
+  .lib-card.box { border-top-color: var(--cc-box-line); }
+  .lib-card.retired { border-top-color: var(--cc-old-line); background: var(--surface-2); }
+  .lib-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .lib-name { font-size: 14px; font-weight: 600; line-height: 1.35; }
+  .lib-desc { font-size: 12.5px; color: var(--text-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .lib-meta { font-size: 12px; color: var(--muted); }
+  .lib-act { margin-top: auto; padding-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .btn.sm { height: 30px; padding: 0 10px; font-size: 12.5px; }
+  .lib-act .icon-act { margin-left: auto; }
+
   /* Year tabs */
   .year-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; }
   .year-tab {
@@ -542,6 +570,7 @@
         <button type="button" data-view="dash" aria-pressed="false">Dashboard</button>
         <button type="button" data-view="cal" aria-pressed="false">Calendar</button>
         <button type="button" data-view="cc" aria-pressed="false">Campaign Calendar</button>
+        <button type="button" data-view="lib" aria-pressed="false">All content</button>
       </div>
       <div class="menu" id="dataMenu">
         <button class="btn" id="dataMenuBtn" aria-haspopup="true" aria-expanded="false">
@@ -619,6 +648,27 @@
     <div class="cc-key" aria-hidden="true"><span><i class="old"></i>Gray: retired when its new campaign launches</span><span><i class="new"></i>Blue: new or current campaign</span><span><i class="box"></i>Green: Campaign in a Box</span></div>
     <div class="lob-row one-line" id="ccLobs" role="group" aria-label="Line of business" style="margin-bottom:14px"></div>
     <div class="cc-scroll"><div class="cc-grid" id="ccGrid"></div></div>
+  </section>
+
+  <!-- All content -->
+  <section class="card lib" id="libView" hidden aria-label="All content">
+    <div class="lib-head">
+      <div>
+        <h2>All content</h2>
+        <p id="libSub"></p>
+      </div>
+      <div class="lib-tools">
+        <input class="search" id="libSearch" type="search" placeholder="Search name, sales play, language…" aria-label="Search content">
+        <select class="ctl" id="libType" aria-label="Type">
+          <option value="">All types</option>
+          <option value="Campaign">Campaign</option>
+          <option value="Campaign in a Box">Campaign in a Box</option>
+        </select>
+        <label class="lib-check"><input type="checkbox" id="libRetired"> Show retired</label>
+      </div>
+    </div>
+    <div class="lob-row one-line" id="libLobs" role="group" aria-label="Line of business"></div>
+    <div id="libBody"></div>
   </section>
 
   <div id="dashView" hidden>
@@ -1867,13 +1917,87 @@
     $('#ccGrid').replaceChildren(...cells);
   }
 
+  // ---------- All content ----------
+  // Every live campaign from every year, grouped by LoB. Campaigns already replaced or retired are hidden unless asked for.
+  function retiredIds() {
+    const t = today(), nowAbs = t.getFullYear() * 12 + t.getMonth(), out = new Set();
+    for (const c of campaigns) {
+      const r = parseLaunch(c.retire);
+      if (r && r.y * 12 + r.m <= nowAbs) out.add(c.id);
+      if (c.status === 'Live') for (const id of c.replaces || []) out.add(id);
+    }
+    return out;
+  }
+  async function copyText(text, done) {
+    try { await navigator.clipboard.writeText(text); toast(done); }
+    catch { toast('Couldn’t copy here. Open the campaign and copy the address from your browser.'); }
+  }
+  function libCard(c, retired) {
+    const L = parseLaunch(c.launch);
+    const when = !L ? 'Launch date not set' : L.y < VIS_FROM ? `Live since ${L.y}` : `Launched ${launchLabel(c.launch)}`;
+    const langs = c.languages.length ? (c.languages.length === 1 ? c.languages[0] : `${c.languages.length} languages`) : '';
+    return el('article', { class: 'lib-card' + (isEiab(c) ? ' box' : '') + (retired ? ' retired' : '') },
+      el('div', { class: 'lib-tags' },
+        el('span', { class: 'tag' }, c.type),
+        el('span', { class: 'tag' }, c.newRefresh === 'Refresh' ? 'Refresh' : 'Net new'),
+        ...c.motion.map(m => el('span', { class: 'tag' }, m)),
+        retired ? el('span', { class: 'tag' }, 'Retired') : null),
+      el('div', { class: 'lib-name' }, campaignName(c, 'span')),
+      c.description ? el('div', { class: 'lib-desc', title: c.description }, c.description) : null,
+      el('div', { class: 'lib-meta', title: c.languages.join(', ') }, [when, langs, c.owner].filter(Boolean).join(' · ')),
+      el('div', { class: 'lib-act' },
+        c.link ? el('a', { class: 'btn primary sm', href: c.link, target: '_blank', rel: 'noopener noreferrer' }, 'Open campaign ↗') : el('span', { class: 'tag warn' }, 'Link missing'),
+        c.link ? el('button', { type: 'button', class: 'btn sm', onclick: () => copyText(c.link, 'Link copied') }, 'Copy link')
+          : canWrite ? el('button', { type: 'button', class: 'btn sm', onclick: () => openForm(c) }, 'Add link') : null,
+        iconBtn('edit', canWrite ? 'Edit campaign' : 'View campaign', () => openForm(c))));
+  }
+  function renderLibrary() {
+    const retired = retiredIds(), showRet = $('#libRetired').checked;
+    const q = $('#libSearch').value.trim().toLowerCase(), typeF = $('#libType').value;
+    const live = campaigns.filter(c => c.status === 'Live' && (showRet || !retired.has(c.id)));
+    const lobs = uniq(live.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
+    let lob = prefs.libLob || ALL_LOBS;
+    if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = ALL_LOBS;
+    const lobBtn = (v, label, n) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
+      onclick: () => { prefs.libLob = v; savePrefs(); renderLibrary(); } }, label, el('span', { class: 'n' }, n));
+    $('#libLobs').replaceChildren(lobBtn(ALL_LOBS, 'All LoBs', live.length), ...lobs.map(l => lobBtn(l, l, live.filter(c => c.lob === l).length)));
+
+    const shown = live.filter(c => (lob === ALL_LOBS || c.lob === lob) && (!typeF || c.type === typeF) && (!q ||
+      [c.name, c.description, c.lob, c.type, c.owner, c.notes, ...c.languages, ...c.motion, ...c.segment].join(' ').toLowerCase().includes(q)));
+    const missing = shown.filter(c => !c.link).length;
+    $('#libSub').textContent = `${shown.length} live content piece${shown.length === 1 ? '' : 's'}`
+      + (lob === ALL_LOBS ? ` across ${uniq(shown.map(c => c.lob)).length} LoBs` : ` in ${lob}`)
+      + (missing ? ` · ${missing} without a link yet` : '');
+    if (!shown.length) {
+      $('#libBody').replaceChildren(el('div', { class: 'empty' },
+        el('h3', {}, live.length ? 'Nothing matches' : 'No live campaigns yet'),
+        el('p', {}, live.length ? 'Try a different search, type or line of business.' : 'Campaigns appear here once they’re marked live.')));
+      return;
+    }
+    // One section per LoB; newest launches first inside each.
+    const byLob = new Map();
+    for (const c of shown) { if (!byLob.has(c.lob)) byLob.set(c.lob, []); byLob.get(c.lob).push(c); }
+    $('#libBody').replaceChildren(...[...byLob.keys()].sort((a, b) => a.localeCompare(b)).map(l => {
+      const items = byLob.get(l).sort((a, b) => launchSortKey(b.launch === '' ? '0000-01' : b.launch) - launchSortKey(a.launch === '' ? '0000-01' : a.launch) || a.name.localeCompare(b.name));
+      const noLink = items.filter(c => !c.link).length;
+      return el('section', { class: 'lib-sec' },
+        el('div', { class: 'lib-sec-head' }, el('h3', {}, l), el('span', { class: 'lg-n' }, items.length),
+          noLink ? el('small', {}, `${noLink} without a link`) : null),
+        el('div', { class: 'lib-grid' }, items.map(c => libCard(c, retired.has(c.id)))));
+    }));
+  }
+  $('#libSearch').addEventListener('input', renderLibrary);
+  $('#libType').addEventListener('change', renderLibrary);
+  $('#libRetired').addEventListener('change', renderLibrary);
+
   function applyView() {
     const v = prefs.view2;
     $('#execView').hidden = v !== 'exec';
     $('#calView').hidden = v !== 'cal';
     $('#dashView').hidden = v !== 'dash';
     $('#ccView').hidden = v !== 'cc';
-    $('#yearTabs').hidden = v === 'cal'; // the calendar runs across years
+    $('#libView').hidden = v !== 'lib';
+    $('#yearTabs').hidden = v === 'cal' || v === 'lib'; // these views run across years
     if (v === 'cal') { calScrolled = false; renderCalendar(); }
     document.querySelectorAll('#viewSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
   }
@@ -1892,6 +2016,7 @@
     renderExec();
     renderCalendar();
     renderCampaignCal();
+    renderLibrary();
   }
 
   // ---------- Boot ----------
@@ -1908,7 +2033,8 @@
     if (location.hash === '#dashboard') prefs.view2 = 'dash';
     if (location.hash === '#calendar') prefs.view2 = 'cal';
     if (location.hash === '#campaign-calendar') prefs.view2 = 'cc';
-    if (!['dash', 'cal', 'cc'].includes(prefs.view2)) prefs.view2 = 'exec';
+    if (location.hash === '#all-content') prefs.view2 = 'lib';
+    if (!['dash', 'cal', 'cc', 'lib'].includes(prefs.view2)) prefs.view2 = 'exec';
     applyView();
     applyCollapsed();
     renderLegend();
