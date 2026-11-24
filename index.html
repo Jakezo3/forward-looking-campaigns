@@ -735,7 +735,7 @@
       <div class="chart-head">
         <div>
           <h2>Launch timeline</h2>
-          <p>Campaigns per quarter by estimated launch</p>
+          <p id="timelineSub">Campaigns per quarter by estimated launch</p>
         </div>
         <div class="legend" id="legend1"></div>
       </div>
@@ -1123,22 +1123,28 @@
   }
   // ---------- Year tabs ----------
   const allYears = () => [...new Set([...BASE_YEARS, prefs.year, ...campaigns.map(c => c.year)].filter(y => Number.isInteger(y) && y >= VIS_FROM))].sort((a, b) => a - b);
-  const inYear = () => campaigns.filter(c => c.year === prefs.year);
+  // The Dashboard has an extra "All" tab covering every campaign from every year; other views stay on one year.
+  const isAll = () => prefs.view2 === 'dash' && prefs.dashAll === true;
+  const yearLabel = () => isAll() ? 'All' : String(prefs.year);
+  const inYear = () => isAll() ? campaigns : campaigns.filter(c => c.year === prefs.year);
   function renderTabs() {
-    const years = allYears();
-    $('#yearTabs').replaceChildren(...years.map(y => el('button', {
+    const years = allYears(), dash = prefs.view2 === 'dash';
+    const keys = dash ? ['all', ...years] : years;
+    const sel = isAll() ? 'all' : prefs.year;
+    $('#yearTabs').replaceChildren(...keys.map(y => el('button', {
       type: 'button', role: 'tab', class: 'year-tab', id: 'tab' + y,
-      'aria-selected': String(y === prefs.year), tabindex: y === prefs.year ? '0' : '-1',
+      'aria-selected': String(y === sel), tabindex: y === sel ? '0' : '-1',
       onclick: () => setYear(y),
       onkeydown: e => {
-        const i = years.indexOf(y), j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
-        if (years[j]) { setYear(years[j]); $('#tab' + years[j]).focus(); }
+        const i = keys.indexOf(y), j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
+        if (keys[j] !== undefined) { setYear(keys[j]); $('#tab' + keys[j]).focus(); }
       }
-    }, String(y), el('span', { class: 'n' }, campaigns.filter(c => c.year === y).length))));
+    }, y === 'all' ? 'All' : String(y), el('span', { class: 'n' }, y === 'all' ? campaigns.length : campaigns.filter(c => c.year === y).length))));
   }
   function setYear(y) {
-    prefs.year = y; savePrefs();
-    try { history.replaceState(null, '', '#y' + y); } catch {}
+    if (y === 'all') prefs.dashAll = true; else { prefs.dashAll = false; prefs.year = y; }
+    savePrefs();
+    try { history.replaceState(null, '', y === 'all' ? '#all' : '#y' + y); } catch {}
     render();
   }
 
@@ -1147,7 +1153,7 @@
     const w = $('#windowSel').value;
     const offs = Object.fromEntries(GROUPS.map(g => [g.key, offSet(g.key)]));
     return campaigns.filter(c => {
-      if (c.year !== prefs.year) return false;
+      if (!isAll() && c.year !== prefs.year) return false;
       for (const g of GROUPS) if (g.key !== except && !passesGroup(c, g, offs[g.key])) return false;
       if (!passesWindow(c, w)) return false;
       if (q) {
@@ -1253,20 +1259,25 @@
   function renderTimeline(list) {
     const host = $('#timeline');
     const t = today();
-    // Q1–Q4 of the selected year; month-level launches roll up into their quarter.
-    const y = prefs.year;
+    // Q1–Q4 of the selected year; month-level launches roll up into their quarter. The All tab shows one column per year.
+    const y = prefs.year, all = isAll();
     const qm = q => MONTHS.slice((q - 1) * 3, q * 3);
-    const buckets = [1, 2, 3, 4].map(q => ({ label: `Q${q} (${qm(q)[0]}–${qm(q)[2]})`, full: `Q${q} ${y}`, now: t.getFullYear() === y && Math.floor(t.getMonth() / 3) + 1 === q, items: [] }));
-    const nodate = { label: 'No launch set', full: `No launch set (${y})`, items: [] };
+    const buckets = all
+      ? [...new Set(list.map(c => parseLaunch(c.launch)?.y ?? c.year))].filter(Number.isInteger).sort((a, b) => a - b)
+          .map(yy => ({ yy, label: String(yy), full: String(yy), now: t.getFullYear() === yy, items: [] }))
+      : [1, 2, 3, 4].map(q => ({ label: `Q${q} (${qm(q)[0]}–${qm(q)[2]})`, full: `Q${q} ${y}`, now: t.getFullYear() === y && Math.floor(t.getMonth() / 3) + 1 === q, items: [] }));
+    const nodate = { label: 'No launch set', full: all ? 'No launch set' : `No launch set (${y})`, items: [] };
     for (const c of list) {
       const L = parseLaunch(c.launch);
-      if (L && L.y === y) buckets[L.q - 1].items.push(c);
+      if (all) { const b = buckets.find(b => b.yy === (L ? L.y : c.year)); (L && b ? b : nodate).items.push(c); }
+      else if (L && L.y === y) buckets[L.q - 1].items.push(c);
       else nodate.items.push(c);
     }
+    $('#timelineSub').textContent = all ? 'Campaigns per year by estimated launch' : 'Campaigns per quarter by estimated launch';
     const cols = [...buckets, ...(nodate.items.length ? [nodate] : [])];
 
     if (!list.length) {
-      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Add a ${prefs.year} campaign to see it on the timeline.`));
+      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Add a${isAll() ? '' : ' ' + prefs.year} campaign to see it on the timeline.`));
       return;
     }
     const max = Math.max(1, ...cols.map(b => b.items.length));
@@ -1290,7 +1301,7 @@
   function renderByLob(list) {
     const host = $('#byLob');
     if (!list.length) {
-      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Counts per LoB appear once ${prefs.year} campaigns are added.`));
+      host.replaceChildren(el('div', { class: 'chart-empty' }, inYear().length ? 'No campaigns match the current toggles.' : `Counts per LoB appear once ${isAll() ? '' : prefs.year + ' '}campaigns are added.`));
       return;
     }
     const groups = {};
@@ -1350,9 +1361,9 @@
     if (!yearTotal) {
       host.replaceChildren(el('div', { class: 'empty' },
         el('div', { class: 'ill' }, svgIcon('M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z')),
-        el('h3', {}, `No ${prefs.year} campaigns yet`),
+        el('h3', {}, isAll() ? 'No campaigns yet' : `No ${prefs.year} campaigns yet`),
         el('p', {}, 'Add the campaigns coming down the pipeline — whether they’re live or still in progress — with an estimated launch month or quarter, and tag them by LoB, segment and motion.'),
-        el('button', { class: 'btn primary write-only', type: 'button', onclick: () => openForm() }, `Add a ${prefs.year} campaign`)));
+        el('button', { class: 'btn primary write-only', type: 'button', onclick: () => openForm() }, isAll() ? 'Add a campaign' : `Add a ${prefs.year} campaign`)));
       return;
     }
     if (!list.length) {
@@ -1593,7 +1604,7 @@
       const vals = g.of(data);
       if (vals.length && vals.every(v => off.has(v))) { vals.forEach(v => off.delete(v)); prefs.off[g.key] = [...off]; }
     }
-    if (data.year !== prefs.year && data.year >= VIS_FROM) { prefs.year = data.year; try { history.replaceState(null, '', '#y' + data.year); } catch {} }
+    if (!isAll() && data.year !== prefs.year && data.year >= VIS_FROM) { prefs.year = data.year; try { history.replaceState(null, '', '#y' + data.year); } catch {} }
     savePrefs();
     const wasEdit = !!editingId;
     dlg.close(); render();
@@ -1653,7 +1664,7 @@
     } else if (act === 'export-csv') {
       const head = ['Year', 'Campaign', 'Description', 'LoB', 'Status', 'Launch', 'New/Refresh', 'Type', 'Segment', 'Motion', 'Languages', 'Owner', 'Notes', 'Link'];
       const lines = sorted(filtered()).map(c => [c.year, c.name, c.description, c.lob, c.status, launchLabel(c.launch), c.newRefresh, c.type, c.segment.join('; '), c.motion.join('; '), c.languages.join('; '), c.owner, c.notes, c.link].map(v => csvCell(String(v))).join(','));
-      download(`campaigns-${prefs.year}-${stamp()}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
+      download(`campaigns-${isAll() ? 'all' : prefs.year}-${stamp()}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
     } else if (act === 'import') {
       $('#importFile').click();
     } else if (act === 'clear') {
@@ -1726,7 +1737,7 @@
 
   // ---------- Exec summary ----------
   function renderExec() {
-    const y = prefs.year, all = inYear();
+    const y = prefs.year, all = campaigns.filter(c => c.year === y);
     const live = all.filter(c => c.status === 'Live'), up = all.filter(c => c.status !== 'Live');
     const n = (list, nr) => list.filter(c => c.newRefresh === nr).length;
     $('#exFy').textContent = 'FY ' + y;
@@ -1999,6 +2010,7 @@
     $('#libView').hidden = v !== 'lib';
     $('#yearTabs').hidden = v === 'cal' || v === 'lib'; // these views run across years
     if (v === 'cal') { calScrolled = false; renderCalendar(); }
+    if (v === 'dash' || v === 'exec' || v === 'cc') render(); // the All tab only exists on the Dashboard
     document.querySelectorAll('#viewSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
   }
   document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { prefs.view2 = b.dataset.view; savePrefs(); applyView(); }));
@@ -2007,7 +2019,7 @@
   function render() {
     const list = filtered();
     renderTabs();
-    $('#listTitle').textContent = `${prefs.year} campaigns`;
+    $('#listTitle').textContent = isAll() ? 'All campaigns' : `${prefs.year} campaigns`;
     renderFilters();
     renderKpis(list);
     renderTimeline(list);
@@ -2031,6 +2043,8 @@
     $('#sortSel').value = SORTS.includes(prefs.sort.key) ? prefs.sort.key : 'date';
     // Exec summary is the landing view; #calendar / #dashboard link straight to the others.
     if (location.hash === '#dashboard') prefs.view2 = 'dash';
+    if (location.hash === '#all') { prefs.view2 = 'dash'; prefs.dashAll = true; }
+    if (hashYear) prefs.dashAll = false;
     if (location.hash === '#calendar') prefs.view2 = 'cal';
     if (location.hash === '#campaign-calendar') prefs.view2 = 'cc';
     if (location.hash === '#all-content') prefs.view2 = 'lib';
