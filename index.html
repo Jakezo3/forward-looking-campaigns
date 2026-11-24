@@ -175,7 +175,7 @@
   /* KPIs */
   .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
   @media (min-width: 720px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  @media (min-width: 1100px) { .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+  @media (min-width: 1100px) { .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } .kpis.four { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   .kpi { padding: 16px 18px; min-width: 0; }
   .kpi .label { font-size: 12px; font-weight: 500; color: var(--text-2); display: flex; align-items: center; gap: 6px; }
   .kpi .value { font-size: 32px; font-weight: 700; line-height: 1.15; margin-top: 6px; font-variant-numeric: tabular-nums; }
@@ -678,12 +678,12 @@
       <div class="value" id="kUpcoming">0</div>
       <div class="note" id="kUpcomingNote">0 campaigns · 0 EiaB</div>
     </div>
-    <div class="card kpi">
+    <div class="card kpi" id="kNewCard">
       <div class="label">Net New</div>
       <div class="value" id="kNew">0</div>
       <div class="note">New builds in view</div>
     </div>
-    <div class="card kpi">
+    <div class="card kpi" id="kRefreshCard">
       <div class="label">Refreshed</div>
       <div class="value" id="kRefresh">0</div>
       <div class="note">Refreshes in view</div>
@@ -1155,7 +1155,7 @@
     const offs = Object.fromEntries(GROUPS.map(g => [g.key, offSet(g.key)]));
     return active().filter(c => {
       if (!isAll() && c.year !== prefs.year) return false;
-      for (const g of GROUPS) if (g.key !== except && !passesGroup(c, g, offs[g.key])) return false;
+      for (const g of GROUPS) if (g.key !== except && !(g.key === 'newRefresh' && isAll()) && !passesGroup(c, g, offs[g.key])) return false;
       if (!passesWindow(c, w)) return false;
       if (q) {
         const hay = [c.name, c.description, c.lob, c.type, c.owner, c.notes, ...c.languages].join(' ').toLowerCase();
@@ -1198,7 +1198,8 @@
         chips);
     };
     const byKey = Object.fromEntries(GROUPS.map(g => [g.key, g]));
-    $('#filterGroups').replaceChildren(...FILTER_LAYOUT.map(keys =>
+    const layout = isAll() ? FILTER_LAYOUT.map(ks => ks.filter(k => k !== 'newRefresh')) : FILTER_LAYOUT; // no New/Refresh on the All tab
+    $('#filterGroups').replaceChildren(...layout.map(keys =>
       el('div', { class: 'frow' + (keys.length > 1 ? ' multi' : '') }, keys.map(k => panel(byKey[k])))));
     const w = $('#windowSel').value !== 'all', q = !!$('#search').value.trim();
     const parts = [`Showing ${filtered().length} of ${inYear().length} campaigns`];
@@ -1223,6 +1224,8 @@
     $('#kUpcomingNote').textContent = `${upcoming.length - eiab} campaign${upcoming.length - eiab === 1 ? '' : 's'} · ${eiab} in a box`;
     $('#kNew').textContent = list.filter(c => c.newRefresh === 'New').length;
     $('#kRefresh').textContent = list.filter(c => c.newRefresh === 'Refresh').length;
+    $('#kNewCard').hidden = $('#kRefreshCard').hidden = isAll();
+    $('.kpis').classList.toggle('four', isAll());
     $('#kLive').textContent = list.filter(c => c.status === 'Live').length;
     $('#kProgress').textContent = list.filter(c => c.status === 'In Progress').length;
     $('#kRisk').textContent = list.filter(isOverdue).length;
@@ -1402,7 +1405,7 @@
     const sub = !L ? '' : c.status === 'Live' ? 'Launched' : relLaunch(L);
     const tags = [
       el('span', { class: 'tag strong' }, c.lob),
-      el('span', { class: 'tag' }, c.newRefresh === 'Refresh' ? 'Refresh' : 'Net new'),
+      isAll() ? null : el('span', { class: 'tag' }, c.newRefresh === 'Refresh' ? 'Refresh' : 'Net new'),
       isEiab(c) ? el('span', { class: 'tag' }, 'Campaign in a Box') : null,
       ...[...c.segment, ...c.motion].map(x => el('span', { class: 'tag' }, x)),
       c.languages.length ? el('span', { class: 'tag', title: c.languages.join(', ') }, c.languages.length === 1 ? c.languages[0] : `${c.languages.length} languages`) : null,
@@ -1951,7 +1954,6 @@
     return el('article', { class: 'lib-card' + (isEiab(c) ? ' box' : '') + (retired ? ' retired' : '') },
       el('div', { class: 'lib-tags' },
         el('span', { class: 'tag' }, c.type),
-        el('span', { class: 'tag' }, c.newRefresh === 'Refresh' ? 'Refresh' : 'Net new'),
         ...c.motion.map(m => el('span', { class: 'tag' }, m)),
         retired ? el('span', { class: 'tag' }, 'Retired') : null),
       el('div', { class: 'lib-name' }, campaignName(c, 'span')),
