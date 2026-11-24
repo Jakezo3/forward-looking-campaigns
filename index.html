@@ -664,7 +664,6 @@
           <option value="Campaign">Campaign</option>
           <option value="Campaign in a Box">Campaign in a Box</option>
         </select>
-        <label class="lib-check"><input type="checkbox" id="libRetired"> Show retired</label>
       </div>
     </div>
     <div class="lob-row one-line" id="libLobs" role="group" aria-label="Line of business"></div>
@@ -1126,7 +1125,9 @@
   // The Dashboard has an extra "All" tab covering every campaign from every year; other views stay on one year.
   const isAll = () => prefs.view2 === 'dash' && prefs.dashAll === true;
   const yearLabel = () => isAll() ? 'All' : String(prefs.year);
-  const inYear = () => isAll() ? campaigns : campaigns.filter(c => c.year === prefs.year);
+  // Retired campaigns (retire month passed, or replaced by a live campaign) only appear on the Campaign Calendar.
+  const active = () => { const r = retiredIds(); return campaigns.filter(c => !r.has(c.id)); };
+  const inYear = () => isAll() ? active() : active().filter(c => c.year === prefs.year);
   function renderTabs() {
     const years = allYears(), dash = prefs.view2 === 'dash';
     const keys = dash ? ['all', ...years] : years;
@@ -1139,7 +1140,7 @@
         const i = keys.indexOf(y), j = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : -1;
         if (keys[j] !== undefined) { setYear(keys[j]); $('#tab' + keys[j]).focus(); }
       }
-    }, y === 'all' ? 'All' : String(y), el('span', { class: 'n' }, y === 'all' ? campaigns.length : campaigns.filter(c => c.year === y).length))));
+    }, y === 'all' ? 'All' : String(y), el('span', { class: 'n' }, y === 'all' ? active().length : active().filter(c => c.year === y).length))));
   }
   function setYear(y) {
     if (y === 'all') prefs.dashAll = true; else { prefs.dashAll = false; prefs.year = y; }
@@ -1152,7 +1153,7 @@
     const q = $('#search').value.trim().toLowerCase();
     const w = $('#windowSel').value;
     const offs = Object.fromEntries(GROUPS.map(g => [g.key, offSet(g.key)]));
-    return campaigns.filter(c => {
+    return active().filter(c => {
       if (!isAll() && c.year !== prefs.year) return false;
       for (const g of GROUPS) if (g.key !== except && !passesGroup(c, g, offs[g.key])) return false;
       if (!passesWindow(c, w)) return false;
@@ -1737,7 +1738,7 @@
 
   // ---------- Exec summary ----------
   function renderExec() {
-    const y = prefs.year, all = campaigns.filter(c => c.year === y);
+    const y = prefs.year, all = active().filter(c => c.year === y);
     const live = all.filter(c => c.status === 'Live'), up = all.filter(c => c.status !== 'Live');
     const n = (list, nr) => list.filter(c => c.newRefresh === nr).length;
     $('#exFy').textContent = 'FY ' + y;
@@ -1784,7 +1785,7 @@
   function renderCalendar() {
     const f = prefs.calFilter || 'all', scale = prefs.calScale2 === 'month' ? 'month' : 'quarter', t = today();
     let lob = prefs.calLob || ALL_LOBS;
-    const dated = campaigns.filter(c => { const L = parseLaunch(c.launch); return L && L.y >= VIS_FROM; });
+    const dated = active().filter(c => { const L = parseLaunch(c.launch); return L && L.y >= VIS_FROM; });
     const lobs = uniq([...prefs.lobs, ...dated.map(c => c.lob)]).sort((a, b) => a.localeCompare(b));
     if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = prefs.calLob = ALL_LOBS;
     const lobBtn = (v, label, n) => el('button', { type: 'button', class: 'lob-btn', 'aria-pressed': String(v === lob),
@@ -1929,7 +1930,7 @@
   }
 
   // ---------- All content ----------
-  // Every live campaign from every year, grouped by LoB. Campaigns already replaced or retired are hidden unless asked for.
+  // Every live campaign from every year, grouped by LoB. Retired campaigns are left out (they stay on the Campaign Calendar).
   function retiredIds() {
     const t = today(), nowAbs = t.getFullYear() * 12 + t.getMonth(), out = new Set();
     for (const c of campaigns) {
@@ -1963,9 +1964,9 @@
         iconBtn('edit', canWrite ? 'Edit campaign' : 'View campaign', () => openForm(c))));
   }
   function renderLibrary() {
-    const retired = retiredIds(), showRet = $('#libRetired').checked;
+    const retired = retiredIds();
     const q = $('#libSearch').value.trim().toLowerCase(), typeF = $('#libType').value;
-    const live = campaigns.filter(c => c.status === 'Live' && (showRet || !retired.has(c.id)));
+    const live = campaigns.filter(c => c.status === 'Live' && !retired.has(c.id));
     const lobs = uniq(live.map(c => c.lob)).sort((a, b) => a.localeCompare(b));
     let lob = prefs.libLob || ALL_LOBS;
     if (lob !== ALL_LOBS && !lobs.includes(lob)) lob = ALL_LOBS;
@@ -1999,7 +2000,6 @@
   }
   $('#libSearch').addEventListener('input', renderLibrary);
   $('#libType').addEventListener('change', renderLibrary);
-  $('#libRetired').addEventListener('change', renderLibrary);
 
   function applyView() {
     const v = prefs.view2;
